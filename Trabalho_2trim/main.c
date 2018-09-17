@@ -13,37 +13,53 @@
 #include <time.h>
 
 void menu(int *escolha);
+void infoimg(FILE *endereco);
 
 int main()
 {
     system("color 0A");//Troca a cor do console para uma totalmente superior
     setlocale(LC_ALL, "Portuguese");//Aplicando língua como Português
-    int option = 0;
-    int flag = 0;
+
+    int option = 0,
+        flag   = 0;
+
+    typedef struct bmpheader {
+	WORD	bfType;
+	DWORD	bfSize;
+	WORD	bfReserved1;
+	WORD	bfReserved2;
+	DWORD	bfOffBits;
+    } cabecalho;
+
+    FILE *filePtr;
+    ibagem = fopen("TesteBmp.bmp","r+b");
+
+    /* Caso o programa não conseguir abrir a imagem: */
+     if (filePtr == 0)
+        puts("Deu ruim");
+        return 0;
+
     do
     {
         menu(&option);
         switch(option)
         {
             case 1:
-                flag = 1;
                 printf("\n");
+                infimg(filePtr);
                 break;
             case 2:
-                if(!flag) break;
                 break;
             case 3:
-                if(!flag) break;
                 break;
             case 4:
-                if(!flag) break;
                 break;
             case 5:
-                flag = 2;
+                flag++;
                 break;
         }
     }
-    while(flag != 2);
+    while(flag == 0);
 }
 
 void menu(int *escolha)
@@ -56,4 +72,9 @@ void menu(int *escolha)
     printf("4. Converter a imagem para escala de cinza \n");
     printf("5. Encerrar o programa                     \n");
     *escolha = ( getch()-'0' );
+}
+
+void infoimg(FILE *endereco)
+{
+
 }
