@@ -14,7 +14,7 @@
 
 
 void menu(int *escolha);
-void headerreader(FILE *endereco);
+void headerreader(FILE *adr);
 
 int main()
 {
@@ -69,7 +69,7 @@ void menu(int *escolha)
     *escolha = ( getche()-'0' );
 }
 
-void headerreader(FILE *endereco)
+void headerreader(FILE *adr)
 {
     typedef unsigned short WORD;
     typedef unsigned int DWORD;
@@ -77,8 +77,8 @@ void headerreader(FILE *endereco)
     typedef long LONG;
 
     struct bmpheader {
-	WORD	bfType;
-	DWORD	bfSize;
+	WORD	bfType; //Assinatura do arquivo (BM)
+	DWORD	bfSize; //Tamanho do arquivo
 	WORD	bfReserved1;
 	WORD	bfReserved2;
 	DWORD	bfOffBits;
@@ -99,10 +99,19 @@ void headerreader(FILE *endereco)
     };
 
     struct bmpinfoheader  cabecalho_info;
-    struct bmpheader cabecalho_bmp;
+    struct bmpheader      cabecalho_bmp;
 
-    fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, endereco);
+    //Lendo assinatura do arquivo
+    fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
     printf("%x",cabecalho_bmp.bfType);
+
+    //Movendo para próximo dado
+    fseek(adr, 2, SEEK_SET);
+
+    //Lendo tamanho do arquivo
+    fread(&cabecalho_bmp.bfSize, sizeof(DWORD), 1, adr);
+    printf("\n O tamanho do arquivo é %x Bytes",cabecalho_bmp.bfSize);
+
 
 
 }
