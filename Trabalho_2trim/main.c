@@ -12,8 +12,9 @@
 #include <conio.h>
 #include <time.h>
 
+
 void menu(int *escolha);
-void infoimg(FILE *endereco);
+void headerreader(FILE *endereco);
 
 int main()
 {
@@ -23,21 +24,15 @@ int main()
     int option = 0,
         flag   = 0;
 
-    typedef struct bmpheader {
-	WORD	bfType;
-	DWORD	bfSize;
-	WORD	bfReserved1;
-	WORD	bfReserved2;
-	DWORD	bfOffBits;
-    } cabecalho;
-
     FILE *filePtr;
-    ibagem = fopen("TesteBmp.bmp","r+b");
+    filePtr = fopen("TesteBmp.bmp","r+b");
 
-    /* Caso o programa não conseguir abrir a imagem: */
+    // Caso o programa não conseguir abrir a imagem: //
      if (filePtr == 0)
+     {
         puts("Deu ruim");
         return 0;
+    }
 
     do
     {
@@ -46,7 +41,7 @@ int main()
         {
             case 1:
                 printf("\n");
-                infimg(filePtr);
+                headerreader(filePtr);
                 break;
             case 2:
                 break;
@@ -71,10 +66,43 @@ void menu(int *escolha)
     printf("3. Encontrar uma figura colorida           \n");
     printf("4. Converter a imagem para escala de cinza \n");
     printf("5. Encerrar o programa                     \n");
-    *escolha = ( getch()-'0' );
+    *escolha = ( getche()-'0' );
 }
 
-void infoimg(FILE *endereco)
+void headerreader(FILE *endereco)
 {
+    typedef unsigned short WORD;
+    typedef unsigned int DWORD;
+    typedef unsigned short BYTE;
+    typedef long LONG;
+
+    struct bmpheader {
+	WORD	bfType;
+	DWORD	bfSize;
+	WORD	bfReserved1;
+	WORD	bfReserved2;
+	DWORD	bfOffBits;
+    };
+
+    struct bmpinfoheader{
+    DWORD biSize;  //specifies the number of bytes required by the struct
+    LONG biWidth;  //specifies width in pixels
+    LONG biHeight;  //species height in pixels
+    WORD biPlanes; //specifies the number of color planes, must be 1
+    WORD biBitCount; //specifies the number of bit per pixel
+    DWORD biCompression;//spcifies the type of compression
+    DWORD biSizeImage;  //size of image in bytes
+    LONG biXPelsPerMeter;  //number of pixels per meter in x axis
+    LONG biYPelsPerMeter;  //number of pixels per meter in y axis
+    DWORD biClrUsed;  //number of colors used by the bitmap
+    DWORD biClrImportant;  //number of colors that are important
+    };
+
+    struct bmpinfoheader  cabecalho_info;
+    struct bmpheader cabecalho_bmp;
+
+    fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, endereco);
+    printf("%x",cabecalho_bmp.bfType);
+
 
 }
