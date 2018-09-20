@@ -34,6 +34,14 @@ int main()
         return 0;
     }
 
+    printf("\n");
+    printf("Selecione a opção:\n");
+    printf("1. Abrir imagem e exibir informações       \n");
+    printf("2. Criar imagens com figuras individuais   \n");
+    printf("3. Encontrar uma figura colorida           \n");
+    printf("4. Converter a imagem para escala de cinza \n");
+    printf("5. Encerrar o programa                     \n");
+
     do
     {
         menu(&option);
@@ -50,23 +58,21 @@ int main()
             case 4:
                 break;
             case 5:
-                flag++;
+                flag = 2;
                 break;
         }
     }
-    while(flag == 0);
+    while(flag != 2);
 }
 
 void menu(int *escolha)
 {
-    printf("\n");
-    printf("Selecione a opção:\n");
-    printf("1. Abrir imagem e exibir informações       \n");
-    printf("2. Criar imagens com figuras individuais   \n");
-    printf("3. Encontrar uma figura colorida           \n");
-    printf("4. Converter a imagem para escala de cinza \n");
-    printf("5. Encerrar o programa                     \n");
     *escolha = ( getche()-'0' );
+    if(*escolha < 1 || *escolha > 5)
+    {
+        printf("\nColoca um valor de 1 a 5 caralho\n"); //Hoje eu to pro crime
+        *escolha = 0;
+    }
 }
 
 void headerreader(FILE *adr)
@@ -103,14 +109,13 @@ void headerreader(FILE *adr)
 
     //Lendo assinatura do arquivo
     fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
-    printf("%x",cabecalho_bmp.bfType);
-
+    printf("\nAssinatura: %c%c",cabecalho_bmp.bfType%0x100,cabecalho_bmp.bfType/0x100);
     //Movendo para próximo dado
     fseek(adr, 2, SEEK_SET);
 
     //Lendo tamanho do arquivo
     fread(&cabecalho_bmp.bfSize, sizeof(DWORD), 1, adr);
-    printf("\n O tamanho do arquivo é %x Bytes",cabecalho_bmp.bfSize);
+    printf("\nO tamanho do arquivo é %x Bytes \n",cabecalho_bmp.bfSize);
 
 
 
