@@ -67,6 +67,7 @@ int main()
 
 void menu(int *escolha)
 {
+    printf("\n");
     *escolha = ( getche()-'0' );
     if(*escolha < 1 || *escolha > 5)
     {
@@ -77,29 +78,28 @@ void menu(int *escolha)
 
 void headerreader(FILE *adr)
 {
-    typedef unsigned short WORD;
-    typedef unsigned int DWORD;
-    typedef unsigned short BYTE;
-    typedef long LONG;
+    typedef unsigned short BYTE; // 1 Byte
+    typedef unsigned short WORD; // 2 Bytes
+    typedef unsigned int   DWORD;// 4 Bytes
 
     struct bmpheader {
 	WORD	bfType; //Assinatura do arquivo (BM)
 	DWORD	bfSize; //Tamanho do arquivo
 	WORD	bfReserved1;
 	WORD	bfReserved2;
-	DWORD	bfOffBits;
+	DWORD	bfOffBits; //Numero de bytes do cabeçalho até o começo do arquivo
     };
 
     struct bmpinfoheader{
     DWORD biSize;  //specifies the number of bytes required by the struct
-    LONG biWidth;  //specifies width in pixels
-    LONG biHeight;  //species height in pixels
+    DWORD biWidth;  //specifies width in pixels
+    DWORD biHeight;  //species height in pixels
     WORD biPlanes; //specifies the number of color planes, must be 1
     WORD biBitCount; //specifies the number of bit per pixel
     DWORD biCompression;//spcifies the type of compression
     DWORD biSizeImage;  //size of image in bytes
-    LONG biXPelsPerMeter;  //number of pixels per meter in x axis
-    LONG biYPelsPerMeter;  //number of pixels per meter in y axis
+    DWORD biXPelsPerMeter;  //number of pixels per meter in x axis
+    DWORD biYPelsPerMeter;  //number of pixels per meter in y axis
     DWORD biClrUsed;  //number of colors used by the bitmap
     DWORD biClrImportant;  //number of colors that are important
     };
@@ -110,6 +110,7 @@ void headerreader(FILE *adr)
     //Lendo assinatura do arquivo
     fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
     printf("\nAssinatura: %c%c",cabecalho_bmp.bfType%0x100,cabecalho_bmp.bfType/0x100);
+
     //Movendo para próximo dado
     fseek(adr, 2, SEEK_SET);
 
@@ -117,6 +118,14 @@ void headerreader(FILE *adr)
     fread(&cabecalho_bmp.bfSize, sizeof(DWORD), 1, adr);
     printf("\nO tamanho do arquivo é %x Bytes \n",cabecalho_bmp.bfSize);
 
+    //Movendo para próximo dado
+    fseek(adr, 8, SEEK_SET);
+
+    //Lendo BfOffSetBits
+    fread(&cabecalho_bmp.bfOffBits, sizeof(DWORD), 1, adr);
+    printf("\n %d \t %x", cabecalho_bmp.bfOffBits, cabecalho_bmp.bfOffBits);
+    printf("\nO tamanho do cabeçalho é %d Bytes \n",
+        (cabecalho_bmp.bfOffBits>>16) );
 
 
 }
