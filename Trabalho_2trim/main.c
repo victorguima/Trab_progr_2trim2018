@@ -63,11 +63,13 @@ int main()
         }
     }
     while(flag != 2);
+    printf("\n");
+    fclose(filePtr);
 }
 
 void menu(int *escolha)
 {
-    printf("\n");
+    printf("\nOpção: ");
     *escolha = ( getche()-'0' );
     if(*escolha < 1 || *escolha > 5)
     {
@@ -108,6 +110,7 @@ void headerreader(FILE *adr)
     struct bmpheader      cabecalho_bmp;
 
     //Lendo assinatura do arquivo
+    fseek(adr, 0, SEEK_SET);
     fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
     printf("\nAssinatura: %c%c",cabecalho_bmp.bfType%0x100,cabecalho_bmp.bfType/0x100);
 
@@ -123,9 +126,6 @@ void headerreader(FILE *adr)
 
     //Lendo BfOffSetBits
     fread(&cabecalho_bmp.bfOffBits, sizeof(DWORD), 1, adr);
-    printf("\n %d \t %x", cabecalho_bmp.bfOffBits, cabecalho_bmp.bfOffBits);
-    printf("\nO tamanho do cabeçalho é %d Bytes \n",
-        (cabecalho_bmp.bfOffBits>>16) );
-
+    printf("\nO tamanho do cabeçalho é %d Bytes \n",cabecalho_bmp.bfOffBits>>16 );
 
 }
