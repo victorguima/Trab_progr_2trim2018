@@ -38,6 +38,7 @@ struct bmpinfoheader{
 
 void menu(int *escolha);
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
 
 int main()
 {
@@ -78,6 +79,7 @@ int main()
                 headerreader(filePtr,ptrheader,ptrinfo);
                 break;
             case 2:
+                buscacor(filePtr,ptrheader,ptrinfo);
                 break;
             case 3:
                 break;
@@ -149,5 +151,10 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     ptrheader = &cabecalho_bmp;
     ptrinfo   = &cabecalho_info;
 
+    return 0;
+}
+
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
+{
     return 0;
 }
