@@ -1,8 +1,7 @@
 # depslib dependency file v1.0
-1537898429 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
+1538334578 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
 	<stdio.h>
 	<stdlib.h>
-	<windows.h>
 	<locale.h>
 	<ctype.h>
 	<string.h>
