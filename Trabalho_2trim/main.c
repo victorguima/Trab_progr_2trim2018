@@ -40,28 +40,19 @@ void menu(int *escolha);
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
 
-
-
 int main()
 {
+    system("color 1E");//Troca a cor do console para uma totalmente superior
     setlocale(LC_ALL, "Portuguese");//Aplicando língua como Português
-    system("color 0E");//Troca a cor do console para uma totalmente superior
 
     int option = 0,
         flag   = 0;
 
-    char nome[10];
-
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
 
-    puts("Por favor insira o nome do arquivo");
-    gets(nome);
-    strcat(nome, ".bmp");
-    puts(nome);
-
     FILE *filePtr;
-    filePtr = fopen(nome,"r+b");
+    filePtr = fopen("TesteBmp.bmp","r+b");
 
     // Caso o programa não conseguir abrir a imagem: //
      if (filePtr == 0)
