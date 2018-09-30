@@ -48,10 +48,13 @@ int main()
     int option = 0,
         flag   = 0;
 
-    char nome[10];
+    char nome[20];
 
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
+
+    //ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
+    //ptrinfo   = (struct bmpinfoheader*) malloc(sizeof(struct bmpinfoheader));
 
     puts("Por favor insira o nome do arquivo");
     gets(nome);
@@ -93,6 +96,8 @@ int main()
             case 4:
                 break;
             case 5:
+                free(ptrheader);
+                free(ptrinfo);
                 flag = 2;
                 break;
         }
@@ -119,7 +124,8 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     struct bmpheader      cabecalho_bmp;
     struct bmpinfoheader  cabecalho_info;
 
-    /* bmpinfoheader */
+
+    /// bmpinfoheader
     //Lendo assinatura do arquivo
     fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
     fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
@@ -139,7 +145,7 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     fread(&cabecalho_bmp.bfOffBits, sizeof(DWORD), 1, adr);
     printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",cabecalho_bmp.bfOffBits );
 
-    /* bmpheader */
+    /// bmpheader
     //Lendo tamanho do arquivo
     fread(&cabecalho_info.biSize, sizeof(DWORD), 1, adr);
     printf("\nO tamanho do cabeçalho é %x Bytes",cabecalho_info.biSize);
@@ -158,10 +164,18 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     ptrheader = &cabecalho_bmp;
     ptrinfo   = &cabecalho_info;
 
+    printf("\n%d, %x  \n", ptrheader->bfOffBits, ptrheader->bfOffBits);
+
     return 0;
 }
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
+     //int cor = sizeof(int);
+    //printf("\n%d, %x \n",cor, cor);
+    printf("\n%d, %x  \n", ptrheader->bfOffBits, ptrheader->bfOffBits);
+    //fseek(adr, ptrheader->bfOffBits, SEEK_SET);
+    //fread(&cor, sizeof(int), 1, adr);
+    //printf("%d, %x \n",cor, cor);
     return 0;
 }
