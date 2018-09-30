@@ -96,8 +96,6 @@ int main()
             case 4:
                 break;
             case 5:
-                free(ptrheader);
-                free(ptrinfo);
                 flag = 2;
                 break;
         }
@@ -121,48 +119,41 @@ void menu(int *escolha)
 
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    struct bmpheader      cabecalho_bmp;
-    struct bmpinfoheader  cabecalho_info;
-
-
-    /// bmpinfoheader
+    /// bmpheader
     //Lendo assinatura do arquivo
     fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
-    fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
+    fread(&ptrheader->bfType, sizeof(WORD), 1, adr);
     //Checa assinatura
-    if(cabecalho_bmp.bfType != 0x4d42)
+    if(ptrheader->bfType != 0x4d42)
     {
         puts("O arquivo não é .bmp!");
         return 0;
     }
-    printf("\nAssinatura: %c%c",cabecalho_bmp.bfType%0x100,cabecalho_bmp.bfType/0x100);
+    printf("\nAssinatura: %c%c",ptrheader->bfType%0x100,ptrheader->bfType/0x100);
     //Lendo quantidade de bytes do cabeçalho
-    fread(&cabecalho_bmp.bfSize, sizeof(DWORD), 1, adr);
-    printf("\nO tamanho do arquivo é %x Bytes",cabecalho_bmp.bfSize);
+    fread(&ptrheader->bfSize, sizeof(DWORD), 1, adr);
+    printf("\nO tamanho do arquivo é %x Bytes",ptrheader->bfSize);
     //Pulando espaços reservados
     fseek(adr, 4, SEEK_CUR);
     //Lendo BfOffSetBits
-    fread(&cabecalho_bmp.bfOffBits, sizeof(DWORD), 1, adr);
-    printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",cabecalho_bmp.bfOffBits );
+    fread(&ptrheader->bfOffBits, sizeof(DWORD), 1, adr);
+    printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",ptrheader->bfOffBits );
 
-    /// bmpheader
+    /// bmpinfoheader
     //Lendo tamanho do arquivo
-    fread(&cabecalho_info.biSize, sizeof(DWORD), 1, adr);
-    printf("\nO tamanho do cabeçalho é %x Bytes",cabecalho_info.biSize);
+    fread(&ptrinfo->biSize, sizeof(DWORD), 1, adr);
+    printf("\nO tamanho do cabeçalho é %x Bytes",ptrinfo->biSize);
     //Lendo largura
-    fread(&cabecalho_info.biWidth, sizeof(DWORD), 1, adr);
-    printf("\nA largura do arquivo é %d pixels",cabecalho_info.biWidth);
+    fread(&ptrinfo->biWidth, sizeof(DWORD), 1, adr);
+    printf("\nA largura do arquivo é %d pixels",ptrinfo->biWidth);
     //Lendo altura
-    fread(&cabecalho_info.biHeight, sizeof(DWORD), 1, adr);
-    printf("\nA altura do arquivo é %d pixels",cabecalho_info.biHeight);
+    fread(&ptrinfo->biHeight, sizeof(DWORD), 1, adr);
+    printf("\nA altura do arquivo é %d pixels",ptrinfo->biHeight);
     //Pulando BiPlanes
     fseek(adr, 2, SEEK_CUR);
     //Lendo biBitCount
-    fread(&cabecalho_info.biBitCount, sizeof(WORD), 1, adr);
-    printf("\nO arquivo possui %d bits por pixel",cabecalho_info.biBitCount);
-
-    ptrheader = &cabecalho_bmp;
-    ptrinfo   = &cabecalho_info;
+    fread(&ptrinfo->biBitCount, sizeof(WORD), 1, adr);
+    printf("\nO arquivo possui %d bits por pixel",ptrinfo->biBitCount);
 
     printf("\n%d, %x  \n", ptrheader->bfOffBits, ptrheader->bfOffBits);
 
