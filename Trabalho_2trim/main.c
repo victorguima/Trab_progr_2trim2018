@@ -127,6 +127,7 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     /// bmpheader
     fseek(adr, 0, SEEK_SET);                                //Garantindo que começa do começo
     fread(&ptrheader->bfType, sizeof(WORD), 1, adr);        //Lendo assinatura do arquivo
+    printf("\n%d %x", ptrheader->bfType, ptrheader->bfType);
     if(ptrheader->bfType != 0x4d42)                         //Checa assinatura
     {
         puts("O arquivo não é .bmp!");
@@ -164,33 +165,33 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    int cor = sizeof(char);
+    int cor = 0, i;
     int tamanho = (ptrinfo->biHeight * ptrinfo->biWidth);
-    int i;
     FILE *red;
     red = fopen("TesteBmp_R.bmp","w+b");
 
-    fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
-    fwrite(ptrheader, sizeof(*ptrheader), 1, red);
+    //Passando cabeçalho para novo arquivo
+    fwrite(&ptrheader->bfType, sizeof(WORD), 1, red);
+    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, red);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, red);
 
     fseek(red, ptrheader->bfOffBits, SEEK_SET);
+    fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    printf("\n%d %x", cor, cor);
+    DWORD branco = 0xffffff;
 
-    /*for(i = 0; i < tamanho; i++)
+    for(i = 0; i <= tamanho; i++)
     {
         fread(&cor, 3, 1, adr);
-
-        if(cor == 0xffffff || cor != 0xff0000)
+        if(cor == 0x0000ff || cor == 0x00ff00)
         {
-            fwrite(0xff, 3, 1, red);
+            fwrite(&branco, 3, 1, red);
         }
         else
         {
             fwrite(&cor, 3, 1, red);
         }
-    }*/
+    }
 
     return 0;
 }
