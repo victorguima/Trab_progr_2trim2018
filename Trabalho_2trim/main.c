@@ -53,8 +53,9 @@ int main()
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
 
-    //ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
-    //ptrinfo   = (struct bmpinfoheader*) malloc(sizeof(struct bmpinfoheader));
+    //Alocando memória para os ponteiros
+    ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
+    ptrinfo   = (struct bmpinfoheader*) malloc(sizeof(struct bmpinfoheader));
 
     puts("Por favor insira o nome do arquivo");
     gets(nome);
@@ -85,15 +86,19 @@ int main()
         switch(option)
         {
             case 1:
+                flag = 1;
                 printf("\n");
                 headerreader(filePtr,ptrheader,ptrinfo);
                 break;
             case 2:
+                if(flag != 1) break;
                 buscacor(filePtr,ptrheader,ptrinfo);
                 break;
             case 3:
+                if(flag != 1) break;
                 break;
             case 4:
+                if(flag != 1) break;
                 break;
             case 5:
                 flag = 2;
@@ -120,53 +125,68 @@ void menu(int *escolha)
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
     /// bmpheader
-    //Lendo assinatura do arquivo
-    fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
-    fread(&ptrheader->bfType, sizeof(WORD), 1, adr);
-    //Checa assinatura
-    if(ptrheader->bfType != 0x4d42)
+    fseek(adr, 0, SEEK_SET);                                //Garantindo que começa do começo
+    fread(&ptrheader->bfType, sizeof(WORD), 1, adr);        //Lendo assinatura do arquivo
+    if(ptrheader->bfType != 0x4d42)                         //Checa assinatura
     {
         puts("O arquivo não é .bmp!");
         return 0;
     }
+    fread(&ptrheader->bfSize, sizeof(DWORD), 1, adr);       //Lendo quantidade de bytes do cabeçalho
+    fread(&ptrheader->bfReserved1, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 1
+    fread(&ptrheader->bfReserved2, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 2
+    fread(&ptrheader->bfOffBits, sizeof(DWORD), 1, adr);    //Lendo BfOffSetBits
+    /// bmpinfoheader
+    fread(&ptrinfo->biSize, sizeof(DWORD), 1, adr);         //Lendo tamanho do arquivo
+    fread(&ptrinfo->biWidth, sizeof(DWORD), 1, adr);        //Lendo largura
+    fread(&ptrinfo->biHeight, sizeof(DWORD), 1, adr);       //Lendo altura
+    fread(&ptrinfo->biPlanes, sizeof(WORD), 1, adr);        //Lendo nº de planos da imagem
+    fread(&ptrinfo->biBitCount, sizeof(WORD), 1, adr);      //Lendo biBitCount
+    fread(&ptrinfo->biCompression, sizeof(DWORD), 1, adr);  //Lendo Compressão usada
+    fread(&ptrinfo->biSizeImage, sizeof(DWORD), 1, adr);    //Lendo Tamanho de dados da imagem
+    fread(&ptrinfo->biXPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução horizontal pixel/m
+    fread(&ptrinfo->biYPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução vertical pixel/m
+    fread(&ptrinfo->biClrUsed, sizeof(DWORD), 1, adr);      //Lendo Numero de cores usadas
+    fread(&ptrinfo->biClrImportant, sizeof(DWORD), 1, adr); //Lendo Numero de cores importantes
+
+
     printf("\nAssinatura: %c%c",ptrheader->bfType%0x100,ptrheader->bfType/0x100);
-    //Lendo quantidade de bytes do cabeçalho
-    fread(&ptrheader->bfSize, sizeof(DWORD), 1, adr);
     printf("\nO tamanho do arquivo é %x Bytes",ptrheader->bfSize);
-    //Pulando espaços reservados
-    fseek(adr, 4, SEEK_CUR);
-    //Lendo BfOffSetBits
-    fread(&ptrheader->bfOffBits, sizeof(DWORD), 1, adr);
     printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",ptrheader->bfOffBits );
 
-    /// bmpinfoheader
-    //Lendo tamanho do arquivo
-    fread(&ptrinfo->biSize, sizeof(DWORD), 1, adr);
     printf("\nO tamanho do cabeçalho é %x Bytes",ptrinfo->biSize);
-    //Lendo largura
-    fread(&ptrinfo->biWidth, sizeof(DWORD), 1, adr);
     printf("\nA largura do arquivo é %d pixels",ptrinfo->biWidth);
-    //Lendo altura
-    fread(&ptrinfo->biHeight, sizeof(DWORD), 1, adr);
     printf("\nA altura do arquivo é %d pixels",ptrinfo->biHeight);
-    //Pulando BiPlanes
-    fseek(adr, 2, SEEK_CUR);
-    //Lendo biBitCount
-    fread(&ptrinfo->biBitCount, sizeof(WORD), 1, adr);
     printf("\nO arquivo possui %d bits por pixel",ptrinfo->biBitCount);
 
-    printf("\n%d, %x  \n", ptrheader->bfOffBits, ptrheader->bfOffBits);
+
+
+
+
 
     return 0;
 }
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-     //int cor = sizeof(int);
-    //printf("\n%d, %x \n",cor, cor);
-    printf("\n%d, %x  \n", ptrheader->bfOffBits, ptrheader->bfOffBits);
-    //fseek(adr, ptrheader->bfOffBits, SEEK_SET);
-    //fread(&cor, sizeof(int), 1, adr);
-    //printf("%d, %x \n",cor, cor);
+    int cor = sizeof(int);
+    int tamanho = (ptrinfo->biHeight * ptrinfo->biWidth);
+    int i;
+    FILE *red;
+    red = fopen("TesteBmp_R.bmp","w+b");
+
+    fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
+    fwrite(ptrheader, sizeof(*ptrheader), 1, red);
+    fwrite(ptrinfo, sizeof(*ptrinfo), 1, red);
+
+    fseek(adr, ptrheader->bfOffBits, SEEK_SET);
+
+    /*for(i = 0; i < tamanho; i++)
+    {
+        fread(&cor, 3, 1, adr);
+        fwrite()
+        if cor
+    }*/
+
     return 0;
 }
