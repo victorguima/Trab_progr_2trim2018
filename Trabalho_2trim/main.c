@@ -167,29 +167,40 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
 {
     int cor = 0, i;
     int tamanho = (ptrinfo->biHeight * ptrinfo->biWidth);
-    FILE *red;
-    red = fopen("TesteBmp_R.bmp","w+b");
+    FILE *redptr;
+    redptr = fopen("TesteBmp_R.bmp","w+b");
 
     //Passando cabeçalho para novo arquivo
-    fwrite(&ptrheader->bfType, sizeof(WORD), 1, red);
-    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, red);
-    fwrite(ptrinfo, sizeof(*ptrinfo), 1, red);
+    fwrite(&ptrheader->bfType, sizeof(WORD), 1, redptr);
+    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, redptr);
+    fwrite(ptrinfo, sizeof(*ptrinfo), 1, redptr);
 
-    fseek(red, ptrheader->bfOffBits, SEEK_SET);
+    fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    DWORD branco = 0xffffff;
+    DWORD white = 0xffffff;
+    DWORD red   = 0x0000ff;
+    DWORD blue  = 0xff0000;
+    DWORD green = 0x00ff00;
 
-    for(i = 0; i <= tamanho; i++)
+
+    puts(" ");
+    for(i = 0; i <= ptrheader->bfSize; i++)
     {
-        fread(&cor, 3, 1, adr);
-        if(cor == 0x0000ff || cor == 0x00ff00)
+        fread(&cor, 1, 3, adr);
+        printf("%x\t\n", cor);
+
+        if(cor == blue || cor == green)
         {
-            fwrite(&branco, 3, 1, red);
+            fwrite(&white, 3, 1, redptr);
+        }
+        if(cor == red)
+        {
+            fwrite(&red, 3, 1, redptr);
         }
         else
         {
-            fwrite(&cor, 3, 1, red);
+            fwrite(&cor, 3, 1, redptr);
         }
     }
 
