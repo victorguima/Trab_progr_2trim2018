@@ -11,6 +11,7 @@
 #include <conio.h>
 #include <time.h>
 
+typedef unsigned char  BYTE; // 1 Bytes
 typedef unsigned short WORD; // 2 Bytes
 typedef unsigned int   DWORD;// 4 Bytes
 
@@ -60,17 +61,21 @@ int main()
     puts("Por favor insira o nome do arquivo");
     gets(nome);
     strcat(nome, ".bmp");
-    puts(nome);
+    printf("Procurando arquivo %s...\n", nome);
 
     FILE *filePtr;
     filePtr = fopen(nome,"r+b");
 
     // Caso o programa não conseguir abrir a imagem:
-     if (filePtr == 0)
-     {
+    if (filePtr == 0)
+    {
         puts("Deu ruim");
-        return 0;
+        puts("Pressione qualquer tecla para continuar...");
+        while(!kbhit()){};
+        system("cls");
+        main();
     }
+    else puts("Sucesso!");
 
     printf("\n");
     printf("Selecione a opção:\n");
@@ -155,6 +160,7 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     printf("\nO tamanho do arquivo é %x Bytes",ptrheader->bfSize);
     printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",ptrheader->bfOffBits );
 
+    printf("\nO arquivo tem %d Bytes por pixel",ptrinfo->biBitCount);
     printf("\nO tamanho do cabeçalho é %x Bytes",ptrinfo->biSize);
     printf("\nA largura do arquivo é %d pixels",ptrinfo->biWidth);
     printf("\nA altura do arquivo é %d pixels",ptrinfo->biHeight);
@@ -165,10 +171,13 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    int cor = 0, i;
-    int tamanho = (ptrinfo->biHeight * ptrinfo->biWidth);
+    int i, aux;
+    int tamanho = ((ptrinfo->biHeight * ptrinfo->biWidth));
+    printf("\n%d", tamanho);
+    //char matriz[ptrinfo->biWidth+(ptrinfo->biWidth%4)][ptrinfo->biHeight];
+
     FILE *redptr;
-    redptr = fopen("TesteBmp_R.bmp","w+b");
+    redptr = fopen("RED.bmp","w+b");
 
     //Passando cabeçalho para novo arquivo
     fwrite(&ptrheader->bfType, sizeof(WORD), 1, redptr);
@@ -178,29 +187,73 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    DWORD white = 0xffffff;
-    DWORD red   = 0x0000ff;
-    DWORD blue  = 0xff0000;
-    DWORD green = 0x00ff00;
+    BYTE cor[3];
+    BYTE white[3]   = {0xff, 0xff, 0xff};
+    BYTE red[3]     = {0x00, 0x00, 0xff};
+    BYTE blue[3]    = {0xff, 0x00, 0x00};
+    BYTE green[3]   = {0x00, 0xff, 0x00};
+    //BYTE nulo  = 0;
 
 
     puts(" ");
-    for(i = 0; i <= ptrheader->bfSize; i++)
+    //for(i = 0; i <=ptrheader->bfSize; i++)
+    for(i = 0; i < tamanho; i++)
     {
-        fread(&cor, 1, 3, adr);
-        printf("%x\t\n", cor);
-
-        if(cor == blue || cor == green)
+        if(feof(adr))
         {
-            fwrite(&white, 3, 1, redptr);
+            printf("cu");
+            //fwrite(&nulo, 1, 3, redptr);
+            continue;
         }
-        if(cor == red)
+        aux = fread(cor, 1, 1, adr);
+        if(!aux)
         {
-            fwrite(&red, 3, 1, redptr);
+            puts("\ndeu ruim\n");
+            cor[0] = 0;
+        }
+        aux = fread(&cor[1], 1, 1, adr);
+        if(!aux)
+        {
+            puts("\ndeu ruim\n");
+            cor[1] = 0;
+        }
+        aux = fread(&cor[2], 1, 1, adr);
+        if(!aux)
+        {
+            puts("\ndeu ruim\n");
+            cor[2] = 0;
+        }
+
+        printf("%x", cor[0]);
+        printf("%x", cor[1]);
+        printf("%x\t", cor[2]);
+
+        //printf("%x%x%x\t", cor, cor+1, cor+2);
+
+
+        if(cor[0] == blue[0] && cor[1] == blue[1] && cor[2] == blue[2])
+        {
+            fwrite(&white,   1, 1, redptr);
+            fwrite(&white[1], 1, 1, redptr);
+            fwrite(&white[2], 1, 1, redptr);
+        }
+        if(cor[0] == green[0] && cor[1] == green[1] && cor[2] == green[2])
+        {
+            fwrite(&white,   1, 1, redptr);
+            fwrite(&white[1], 1, 1, redptr);
+            fwrite(&white[2], 1, 1, redptr);
+        }
+        if(cor[0] == red[0] && cor[1] == red[1] && cor[2] == red[2])
+        {
+            fwrite(&red,   1, 1, redptr);
+            fwrite(&red[1], 1, 1, redptr);
+            fwrite(&red[2], 1, 1, redptr);
         }
         else
         {
-            fwrite(&cor, 3, 1, redptr);
+            fwrite(&cor,   1, 1, redptr);
+            fwrite(&cor[1], 1, 1, redptr);
+            fwrite(&cor[2], 1, 1, redptr);
         }
     }
 
