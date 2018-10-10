@@ -181,7 +181,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     }
 
     int tamanho = altura*largura;
-    printf("\n%d", tamanho);
+    printf("\ntamanho: %d", tamanho);
 
     FILE *redptr;
     redptr = fopen("RED.bmp","w+b");
@@ -194,97 +194,33 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    BYTE cor[3];
-    BYTE white[3]   = {0xff, 0xff, 0xff};
-    BYTE red[3]     = {0x00, 0x00, 0xff};
-    BYTE blue[3]    = {0xff, 0x00, 0x00};
-    BYTE green[3]   = {0x00, 0xff, 0x00};
-    BYTE nulo  = 0;
+    DWORD white = 0xffffff;
+    DWORD red   = 0x0000ff;
+    DWORD blue  = 0xff0000;
+    DWORD green = 0x00ff00;
+    DWORD cor   = 0x00;
 
     puts(" ");
 
-    //for(i = 0; i <=ptrheader->bfSize; i++)
-    for(i = 0; i < tamanho; i++)
+    for(i = 0; i <= tamanho; i++)
     {
-        if(feof(adr))
-        {
-            printf("EITA ");
-            fwrite(&nulo, 1, 1, redptr);
-            continue;
-        }
-        aux = fread(cor, 1, 1, adr);
-        if(feof(adr))
-        {
-            printf("EITA ");
-            fwrite(&nulo, 1, 1, redptr);
-            continue;
-        }
-        if(!aux)
-        {
-            printf("\ndeu ruim1 i=%d\n", i);
-            cor[0] = white[0];
-        }
-        aux = fread(&cor[1], 1, 1, adr);
-        if(feof(adr))
-        {
-            printf("EITA ");
-            fwrite(&nulo, 1, 1, redptr);
-            continue;
-        }
-        if(!aux)
-        {
-            printf("\ndeu ruim2 i=%d\n", i);
-            cor[1] = white[1];
-        }
-        aux = fread(&cor[2], 1, 1, adr);
-        if(feof(adr))
-        {
-            printf("EITA ");
-            fwrite(&nulo, 1, 1, redptr);
-            continue;
-        }
-        if(!aux)
-        {
-            printf("\ndeu ruim3 i=%d\n", i);
-            cor[2] = white[2];
-        }
+        fread(&cor, 3, 1, adr);
+        //printf("%x\t\n", cor);
 
-        /*printf("%x", cor[0]);
-        printf("%x", cor[1]);
-        printf("%x\t", cor[2]);*/
-
-        //printf("%x%x%x\t", cor, cor+1, cor+2);
-
-        if(aux)
+        if(cor == blue || cor == green)
         {
-            if(cor[0] == blue[0] && cor[1] == blue[1] && cor[2] == blue[2])
-            {
-                fwrite(&white,   1, 1, redptr);
-                fwrite(&white[1], 1, 1, redptr);
-                fwrite(&white[2], 1, 1, redptr);
-                continue;
-            }
-            if(cor[0] == green[0] && cor[1] == green[1] && cor[2] == green[2])
-            {
-                fwrite(&white,   1, 1, redptr);
-                fwrite(&white[1], 1, 1, redptr);
-                fwrite(&white[2], 1, 1, redptr);
-                continue;
-            }
-            if(cor[0] == red[0] && cor[1] == red[1] && cor[2] == red[2])
-            {
-                fwrite(&red,   1, 1, redptr);
-                fwrite(&red[1], 1, 1, redptr);
-                fwrite(&red[2], 1, 1, redptr);
-                continue;
-            }
-            else
-            {
-                fwrite(&cor,   1, 1, redptr);
-                fwrite(&cor[1], 1, 1, redptr);
-                fwrite(&cor[2], 1, 1, redptr);
-                continue;
-            }
+            fwrite(&white, 3, 1, redptr);
+            continue;
+        }
+        else if(cor == red)
+        {
+            fwrite(&red, 3, 1, redptr);
+            continue;
+        }
+        else
+        {
+            fwrite(&cor, 3, 1, redptr);
+            continue;
         }
     }
 
