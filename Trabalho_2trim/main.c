@@ -11,7 +11,7 @@
 #include <conio.h>
 #include <time.h>
 
-typedef unsigned char  BYTE; // 1 Bytes
+typedef char  BYTE; // 1 Bytes
 typedef unsigned short WORD; // 2 Bytes
 typedef unsigned int   DWORD;// 4 Bytes
 
@@ -94,7 +94,7 @@ int main()
                 flag = 1;
                 printf("\n");
                 headerreader(filePtr,ptrheader,ptrinfo);
-                break;
+                    break;
             case 2:
                 if(flag != 1) break;
                 buscacor(filePtr,ptrheader,ptrinfo);
@@ -171,10 +171,17 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    int i, aux;
-    int tamanho = ((ptrinfo->biHeight * ptrinfo->biWidth));
+    int i, aux,
+        altura  = ptrinfo->biHeight,
+        largura = ptrinfo->biWidth;
+
+    if(largura%4 != 0)
+    {
+       largura += (4-largura%4);
+    }
+
+    int tamanho = altura*largura;
     printf("\n%d", tamanho);
-    //char matriz[ptrinfo->biWidth+(ptrinfo->biWidth%4)][ptrinfo->biHeight];
 
     FILE *redptr;
     redptr = fopen("RED.bmp","w+b");
@@ -192,68 +199,92 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     BYTE red[3]     = {0x00, 0x00, 0xff};
     BYTE blue[3]    = {0xff, 0x00, 0x00};
     BYTE green[3]   = {0x00, 0xff, 0x00};
-    //BYTE nulo  = 0;
-
+    BYTE nulo  = 0;
 
     puts(" ");
+
     //for(i = 0; i <=ptrheader->bfSize; i++)
     for(i = 0; i < tamanho; i++)
     {
         if(feof(adr))
         {
-            printf("cu");
-            //fwrite(&nulo, 1, 3, redptr);
+            printf("EITA ");
+            fwrite(&nulo, 1, 1, redptr);
             continue;
         }
         aux = fread(cor, 1, 1, adr);
+        if(feof(adr))
+        {
+            printf("EITA ");
+            fwrite(&nulo, 1, 1, redptr);
+            continue;
+        }
         if(!aux)
         {
-            puts("\ndeu ruim\n");
-            cor[0] = 0;
+            printf("\ndeu ruim1 i=%d\n", i);
+            cor[0] = white[0];
         }
         aux = fread(&cor[1], 1, 1, adr);
+        if(feof(adr))
+        {
+            printf("EITA ");
+            fwrite(&nulo, 1, 1, redptr);
+            continue;
+        }
         if(!aux)
         {
-            puts("\ndeu ruim\n");
-            cor[1] = 0;
+            printf("\ndeu ruim2 i=%d\n", i);
+            cor[1] = white[1];
         }
         aux = fread(&cor[2], 1, 1, adr);
+        if(feof(adr))
+        {
+            printf("EITA ");
+            fwrite(&nulo, 1, 1, redptr);
+            continue;
+        }
         if(!aux)
         {
-            puts("\ndeu ruim\n");
-            cor[2] = 0;
+            printf("\ndeu ruim3 i=%d\n", i);
+            cor[2] = white[2];
         }
 
-        printf("%x", cor[0]);
+        /*printf("%x", cor[0]);
         printf("%x", cor[1]);
-        printf("%x\t", cor[2]);
+        printf("%x\t", cor[2]);*/
 
         //printf("%x%x%x\t", cor, cor+1, cor+2);
 
-
-        if(cor[0] == blue[0] && cor[1] == blue[1] && cor[2] == blue[2])
+        if(aux)
         {
-            fwrite(&white,   1, 1, redptr);
-            fwrite(&white[1], 1, 1, redptr);
-            fwrite(&white[2], 1, 1, redptr);
-        }
-        if(cor[0] == green[0] && cor[1] == green[1] && cor[2] == green[2])
-        {
-            fwrite(&white,   1, 1, redptr);
-            fwrite(&white[1], 1, 1, redptr);
-            fwrite(&white[2], 1, 1, redptr);
-        }
-        if(cor[0] == red[0] && cor[1] == red[1] && cor[2] == red[2])
-        {
-            fwrite(&red,   1, 1, redptr);
-            fwrite(&red[1], 1, 1, redptr);
-            fwrite(&red[2], 1, 1, redptr);
-        }
-        else
-        {
-            fwrite(&cor,   1, 1, redptr);
-            fwrite(&cor[1], 1, 1, redptr);
-            fwrite(&cor[2], 1, 1, redptr);
+            if(cor[0] == blue[0] && cor[1] == blue[1] && cor[2] == blue[2])
+            {
+                fwrite(&white,   1, 1, redptr);
+                fwrite(&white[1], 1, 1, redptr);
+                fwrite(&white[2], 1, 1, redptr);
+                continue;
+            }
+            if(cor[0] == green[0] && cor[1] == green[1] && cor[2] == green[2])
+            {
+                fwrite(&white,   1, 1, redptr);
+                fwrite(&white[1], 1, 1, redptr);
+                fwrite(&white[2], 1, 1, redptr);
+                continue;
+            }
+            if(cor[0] == red[0] && cor[1] == red[1] && cor[2] == red[2])
+            {
+                fwrite(&red,   1, 1, redptr);
+                fwrite(&red[1], 1, 1, redptr);
+                fwrite(&red[2], 1, 1, redptr);
+                continue;
+            }
+            else
+            {
+                fwrite(&cor,   1, 1, redptr);
+                fwrite(&cor[1], 1, 1, redptr);
+                fwrite(&cor[2], 1, 1, redptr);
+                continue;
+            }
         }
     }
 
