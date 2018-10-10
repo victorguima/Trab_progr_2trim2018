@@ -174,7 +174,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     int i, aux,
         altura  = ptrinfo->biHeight,
         largura = ptrinfo->biWidth;
-
+	
     if(largura%4 != 0)
     {
        largura += (4-largura%4);
@@ -199,33 +199,31 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     DWORD blue  = 0xff0000;
     DWORD green = 0x00ff00;
     DWORD cor   = 0x00;
-    char  nulo  = 0;
 
     puts(" ");
 
     for(i = 0; i <= tamanho; i++)
     {
-        cor = 0;
-        fread(&cor, 3, 1, adr);
+    	
+        fread(&cor, 1, 3, adr);
         //printf("%x\t\n", cor);
-        if(feof(adr))
-        {
-            fwrite(&nulo, 3, 1, redptr);
-            continue;
-        }
 
-        if(cor == white || !(cor&red) )
+        if(cor == blue || cor == green)
         {
             fwrite(&white, 3, 1, redptr);
             continue;
         }
-        else
+        else if(cor == red)
         {
-            //cor &= red;
             fwrite(&red, 3, 1, redptr);
             continue;
         }
+        else
+        {
+            fwrite(&cor, 3, 1, redptr);
+            continue;
+        }
     }
-
-    return 0;
+       return 0;
 }
+
