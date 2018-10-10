@@ -171,17 +171,17 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    int i, aux,
+    int i, j,
         altura  = ptrinfo->biHeight,
         largura = ptrinfo->biWidth;
 
-    if(largura%4 != 0)
+    /*if(largura%4 != 0)
     {
        largura += (4-largura%4);
-    }
+    }*/
 
     int tamanho = altura*largura;
-    printf("\ntamanho: %d", tamanho);
+    printf("\nlargura: %d", largura);
 
     FILE *redptr;
     redptr = fopen("RED.bmp","w+b");
@@ -203,7 +203,30 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
 
     puts(" ");
 
-    for(i = 0; i <= tamanho; i++)
+    for(i = 0; i <= altura; i++)
+    {
+        for(j = 0; j <= (largura); j++)
+        {
+            fread(&cor, 3, 1, adr);
+
+            if(cor == white || !(cor&red) )
+            {
+                fwrite(&white, 3, 1, redptr);
+            }
+            else
+            {
+                //cor &= red;
+                fwrite(&red, 3, 1, redptr);
+            }
+            if(j == largura && !(largura%4))
+            {
+                fwrite(&nulo, 1, (4-largura%4), redptr);
+            }
+        }
+
+
+    }
+    /*for(i = 0; i <= tamanho; i++)
     {
         cor = 0;
         fread(&cor, 3, 1, adr);
@@ -225,7 +248,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fwrite(&red, 3, 1, redptr);
             continue;
         }
-    }
+    }*/
 
     return 0;
 }
