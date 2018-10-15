@@ -11,6 +11,7 @@
 #include <conio.h>
 #include <time.h>
 
+typedef char  BYTE; // 1 Bytes
 typedef unsigned short WORD; // 2 Bytes
 typedef unsigned int   DWORD;// 4 Bytes
 
@@ -26,39 +27,60 @@ struct bmpinfoheader{
     DWORD biSize;           //Tamanho do cabeçalho, em bytes
     DWORD biWidth;          //Largura em pixels
     DWORD biHeight;         //Altura em pixels
-    WORD biPlanes;          //specifies the number of color planes, must be 1
-    WORD biBitCount;        //Números de bits por pixel
-    DWORD biCompression;    //specifies the type of compression
-    DWORD biSizeImage;      //size of image in bytes
-    DWORD biXPelsPerMeter;  //number of pixels per meter in x axis
-    DWORD biYPelsPerMeter;  //number of pixels per meter in y axis
-    DWORD biClrUsed;        //number of colors used by the bitmap
-    DWORD biClrImportant;   //number of colors that are important
+    WORD  biPlanes;         //Nº de planos da imagem, deve ser 1
+    WORD  biBitCount;       //Números de bits por pixel
+    DWORD biCompression;    //Compressão usada
+    DWORD biSizeImage;      //Tamanho de dados da imagem
+    DWORD biXPelsPerMeter;  //Resolução horizontal pixel/m
+    DWORD biYPelsPerMeter;  //Resolução vertical pixel/m
+    DWORD biClrUsed;        //Nº de cores usadas
+    DWORD biClrImportant;   //Nº de cores importantes
     };
 
 void menu(int *escolha);
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 
 int main()
 {
-    system("color 1E");//Troca a cor do console para uma totalmente superior
+    system("color 0E");//Troca a cor do console para uma totalmente superior
     setlocale(LC_ALL, "Portuguese");//Aplicando língua como Português
 
-    int option = 0,
-        flag   = 0;
+    int     option = 0,
+            flag   = 0;
+
+    char    nome[20],
+            nomebmp[20];
+
 
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
 
     FILE *filePtr;
-    filePtr = fopen("TesteBmp.bmp","r+b");
 
-    // Caso o programa não conseguir abrir a imagem: //
-     if (filePtr == 0)
-     {
+    //Alocando memória para os ponteiros
+    ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
+    ptrinfo   = (struct bmpinfoheader*) malloc(sizeof(struct bmpinfoheader));
+
+    puts("Por favor insira o nome do arquivo");
+    gets(nome);
+    strcpy(nomebmp, nome);
+    strcat(nomebmp, ".bmp");
+    printf("Procurando arquivo %s...\n", nomebmp);
+
+
+    filePtr = fopen(nomebmp,"r+b");
+
+    // Caso o programa não conseguir abrir a imagem:
+    if (filePtr == 0)
+    {
         puts("Deu ruim");
-        return 0;
+        puts("Pressione qualquer tecla para continuar...");
+        while(!kbhit()){};
+        system("cls");
+        main();
     }
+    else puts("Sucesso!");
 
     printf("\n");
     printf("Selecione a opção:\n");
@@ -74,14 +96,19 @@ int main()
         switch(option)
         {
             case 1:
+                flag = 1;
                 printf("\n");
                 headerreader(filePtr,ptrheader,ptrinfo);
-                break;
+                    break;
             case 2:
+                if(flag != 1) break;
+                buscacor(filePtr,ptrheader,ptrinfo,nome);
                 break;
             case 3:
+                if(flag != 1) break;
                 break;
             case 4:
+                if(flag != 1) break;
                 break;
             case 5:
                 flag = 2;
@@ -107,47 +134,130 @@ void menu(int *escolha)
 
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
 {
-    struct bmpheader      cabecalho_bmp;
-    struct bmpinfoheader  cabecalho_info;
-
-    /* bmpinfoheader */
-    //Lendo assinatura do arquivo
-    fseek(adr, 0, SEEK_SET); //Garantindo que começa do começo
-    fread(&cabecalho_bmp.bfType, sizeof(WORD), 1, adr);
-    //Checa assinatura
-    if(cabecalho_bmp.bfType != 0x4d42)
+    /// bmpheader
+    fseek(adr, 0, SEEK_SET);                                //Garantindo que começa do começo
+    fread(&ptrheader->bfType, sizeof(WORD), 1, adr);        //Lendo assinatura do arquivo
+    printf("\n%d %x", ptrheader->bfType, ptrheader->bfType);
+    if(ptrheader->bfType != 0x4d42)                         //Checa assinatura
     {
         puts("O arquivo não é .bmp!");
         return 0;
     }
-    printf("\nAssinatura: %c%c",cabecalho_bmp.bfType%0x100,cabecalho_bmp.bfType/0x100);
-    //Lendo quantidade de bytes do cabeçalho
-    fread(&cabecalho_bmp.bfSize, sizeof(DWORD), 1, adr);
-    printf("\nO tamanho do arquivo é %x Bytes",cabecalho_bmp.bfSize);
-    //Pulando espaços reservados
-    fseek(adr, 4, SEEK_CUR);
-    //Lendo BfOffSetBits
-    fread(&cabecalho_bmp.bfOffBits, sizeof(DWORD), 1, adr);
-    printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",cabecalho_bmp.bfOffBits );
+    fread(&ptrheader->bfSize, sizeof(DWORD), 1, adr);       //Lendo Qtd de bytes do cabeçalho
+    fread(&ptrheader->bfReserved1, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 1
+    fread(&ptrheader->bfReserved2, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 2
+    fread(&ptrheader->bfOffBits, sizeof(DWORD), 1, adr);    //Lendo BfOffSetBits
+    /// bmpinfoheader
+    fread(&ptrinfo->biSize, sizeof(DWORD), 1, adr);         //Lendo Ttamanho do arquivo
+    fread(&ptrinfo->biWidth, sizeof(DWORD), 1, adr);        //Lendo Largura
+    fread(&ptrinfo->biHeight, sizeof(DWORD), 1, adr);       //Lendo Altura
+    fread(&ptrinfo->biPlanes, sizeof(WORD), 1, adr);        //Lendo Nº de planos da imagem
+    fread(&ptrinfo->biBitCount, sizeof(WORD), 1, adr);      //Lendo Quantidade de bits por pixel
+    fread(&ptrinfo->biCompression, sizeof(DWORD), 1, adr);  //Lendo Compressão usada
+    fread(&ptrinfo->biSizeImage, sizeof(DWORD), 1, adr);    //Lendo Tamanho de dados da imagem
+    fread(&ptrinfo->biXPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução horizontal pixel/m
+    fread(&ptrinfo->biYPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução vertical pixel/m
+    fread(&ptrinfo->biClrUsed, sizeof(DWORD), 1, adr);      //Lendo Nº de cores usadas
+    fread(&ptrinfo->biClrImportant, sizeof(DWORD), 1, adr); //Lendo Nº de cores importantes
 
-    /* bmpheader */
-    //Lendo tamanho do arquivo
-    fread(&cabecalho_info.biSize, sizeof(DWORD), 1, adr);
-    printf("\nO tamanho do cabeçalho é %x Bytes",cabecalho_info.biSize);
-    //Lendo largura
-    fread(&cabecalho_info.biWidth, sizeof(DWORD), 1, adr);
-    printf("\nA largura do arquivo é %d pixels",cabecalho_info.biWidth);
-    //Lendo altura
-    fread(&cabecalho_info.biHeight, sizeof(DWORD), 1, adr);
-    printf("\nA altura do arquivo é %d pixels",cabecalho_info.biHeight);
-    //Pulando BiPlanes
-    fseek(adr, 2, SEEK_CUR);
-    //Lendo biBitCount
-    fread(&cabecalho_info.biBitCount, sizeof(WORD), 1, adr);
-    printf("\nO arquivo possui %d bits por pixel",cabecalho_info.biBitCount);
 
-    ptrheader = &cabecalho_bmp;
-    ptrinfo   = &cabecalho_info;
+    printf("\nAssinatura: %c%c",ptrheader->bfType%0x100,ptrheader->bfType/0x100);
+    printf("\nO tamanho do arquivo é %x Bytes",ptrheader->bfSize);
+    printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",ptrheader->bfOffBits );
 
+    printf("\nO arquivo tem %d Bytes por pixel",ptrinfo->biBitCount);
+    printf("\nO tamanho do cabeçalho é %x Bytes",ptrinfo->biSize);
+    printf("\nA largura do arquivo é %d pixels",ptrinfo->biWidth);
+    printf("\nA altura do arquivo é %d pixels",ptrinfo->biHeight);
+    printf("\nO arquivo possui %d bits por pixel \n",ptrinfo->biBitCount);
+
+    return 0;
+}
+
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
+{
+    int     i, j,
+            altura  = ptrinfo->biHeight,
+            largura = ptrinfo->biWidth;
+    DWORD   option,
+            white = 0xffffff,
+            red   = 0xff0000,
+            blue  = 0x0000ff,
+            green = 0x00ff00,
+            cor   = 0x00;
+    BYTE    nulo  = 0x00;
+    FILE    *redptr;
+
+    puts("\n\nEscolha a cor que desejas separar:");
+    puts("1. Vermelho");
+    puts("2. Verde");
+    puts("3. Azul");
+
+    do
+    {
+        option = ( getche()-'0' );
+        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n");
+    }while(option < 1 || option > 3);
+    puts(" ");
+
+    switch(option)
+    {
+        case 1:
+            option = red;
+            strcat(arquivo, "_R");
+            break;
+        case 2:
+            option = green;
+            strcat(arquivo, "_G");
+            break;
+        case 3:
+            option = blue;
+            strcat(arquivo, "_B");
+            break;
+    }
+    strcat(arquivo, ".bmp");
+
+    redptr = fopen(arquivo,"w+b");
+    if (redptr == 0)
+    {
+        puts("Deu ruim");
+        puts("Pressione qualquer tecla para continuar...");
+        while(!kbhit()){};
+        system("cls");
+        main();
+    }
+    else
+    {
+        printf("O arquivo %s foi criado com sucesso!", arquivo);
+    }
+
+    //Passando cabeçalho para novo arquivo
+    fwrite(&ptrheader->bfType, sizeof(WORD), 1, redptr);
+    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, redptr);
+    fwrite(ptrinfo, sizeof(*ptrinfo), 1, redptr);
+
+    fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
+    fseek(adr, ptrheader->bfOffBits, SEEK_SET);
+
+    for(i = 0; i < altura; i++)
+    {
+        for(j = 0; j < largura; j++)
+        {
+            fread(&cor, 3, 1, adr);
+            if(cor != option)
+            {
+                fwrite(&white, 3, 1, redptr);
+            }
+            else
+            {
+                fwrite(&option, 3, 1, redptr);
+            }
+        }
+        for(j = 0; j < (largura%4); j++)
+        {
+            fwrite(&nulo, 1, 1, redptr);
+            fseek(adr, 1, SEEK_CUR);
+        }
+    }
     return 0;
 }
