@@ -39,20 +39,24 @@ struct bmpinfoheader{
 
 void menu(int *escolha);
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
-int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 
 int main()
 {
     system("color 0E");//Troca a cor do console para uma totalmente superior
     setlocale(LC_ALL, "Portuguese");//Aplicando língua como Português
 
-    int option = 0,
-        flag   = 0;
+    int     option = 0,
+            flag   = 0;
 
-    char nome[20];
+    char    nome[20],
+            nomebmp[20];
+
 
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
+
+    FILE *filePtr;
 
     //Alocando memória para os ponteiros
     ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
@@ -60,11 +64,12 @@ int main()
 
     puts("Por favor insira o nome do arquivo");
     gets(nome);
-    strcat(nome, ".bmp");
-    printf("Procurando arquivo %s...\n", nome);
+    strcpy(nomebmp, nome);
+    strcat(nomebmp, ".bmp");
+    printf("Procurando arquivo %s...\n", nomebmp);
 
-    FILE *filePtr;
-    filePtr = fopen(nome,"r+b");
+
+    filePtr = fopen(nomebmp,"r+b");
 
     // Caso o programa não conseguir abrir a imagem:
     if (filePtr == 0)
@@ -97,7 +102,7 @@ int main()
                     break;
             case 2:
                 if(flag != 1) break;
-                buscacor(filePtr,ptrheader,ptrinfo);
+                buscacor(filePtr,ptrheader,ptrinfo,nome);
                 break;
             case 3:
                 if(flag != 1) break;
@@ -164,27 +169,67 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     printf("\nO tamanho do cabeçalho é %x Bytes",ptrinfo->biSize);
     printf("\nA largura do arquivo é %d pixels",ptrinfo->biWidth);
     printf("\nA altura do arquivo é %d pixels",ptrinfo->biHeight);
-    printf("\nO arquivo possui %d bits por pixel",ptrinfo->biBitCount);
+    printf("\nO arquivo possui %d bits por pixel \n",ptrinfo->biBitCount);
 
     return 0;
 }
 
-int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
-    int i, j,
-        altura  = ptrinfo->biHeight,
-        largura = ptrinfo->biWidth;
+    int     i, j,
+            altura  = ptrinfo->biHeight,
+            largura = ptrinfo->biWidth;
+    DWORD   option,
+            white = 0xffffff,
+            red   = 0xff0000,
+            blue  = 0x0000ff,
+            green = 0x00ff00,
+            cor   = 0x00;
+    BYTE    nulo  = 0x00;
+    FILE    *redptr;
 
-    /*if(largura%4 != 0)
+    puts("\n\nEscolha a cor que desejas separar:");
+    puts("1. Vermelho");
+    puts("2. Verde");
+    puts("3. Azul");
+
+    do
     {
-       largura += (4-largura%4);
-    }*/
+        option = ( getche()-'0' );
+        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n");
+    }while(option < 1 || option > 3);
+    puts(" ");
 
-    int tamanho = altura*largura;
-    printf("\nlargura: %d", largura);
+    switch(option)
+    {
+        case 1:
+            option = red;
+            strcat(arquivo, "_R");
+            break;
+        case 2:
+            option = green;
+            strcat(arquivo, "_G");
+            break;
+        case 3:
+            option = blue;
+            strcat(arquivo, "_B");
+            break;
+    }
+    strcat(arquivo, ".bmp");
 
-    FILE *redptr;
-    redptr = fopen("RED.bmp","w+b");
+    redptr = fopen(arquivo,"w+b");
+    if (redptr == 0)
+    {
+        puts("Deu ruim");
+        puts("Pressione qualquer tecla para continuar...");
+        while(!kbhit()){};
+        system("cls");
+        main();
+    }
+    else
+    {
+        printf("O arquivo %s foi criado com sucesso!", arquivo);
+    }
 
     //Passando cabeçalho para novo arquivo
     fwrite(&ptrheader->bfType, sizeof(WORD), 1, redptr);
@@ -194,61 +239,25 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    DWORD white = 0xffffff;
-    DWORD red   = 0x0000ff;
-    DWORD blue  = 0xff0000;
-    DWORD green = 0x00ff00;
-    DWORD cor   = 0x00;
-    char  nulo  = 0;
-
-    puts(" ");
-
-    for(i = 0; i <= altura; i++)
+    for(i = 0; i < altura; i++)
     {
-        for(j = 0; j <= (largura); j++)
+        for(j = 0; j < largura; j++)
         {
             fread(&cor, 3, 1, adr);
-
-            if(cor == white || !(cor&red) )
+            if(cor != option)
             {
                 fwrite(&white, 3, 1, redptr);
             }
             else
             {
-                //cor &= red;
-                fwrite(&red, 3, 1, redptr);
-            }
-            if(j == largura && !(largura%4))
-            {
-                fwrite(&nulo, 1, (4-largura%4), redptr);
+                fwrite(&option, 3, 1, redptr);
             }
         }
-
-
+        for(j = 0; j < (largura%4); j++)
+        {
+            fwrite(&nulo, 1, 1, redptr);
+            fseek(adr, 1, SEEK_CUR);
+        }
     }
-    /*for(i = 0; i <= tamanho; i++)
-    {
-        cor = 0;
-        fread(&cor, 3, 1, adr);
-        //printf("%x\t\n", cor);
-        if(feof(adr))
-        {
-            fwrite(&nulo, 3, 1, redptr);
-            continue;
-        }
-
-        if(cor == white || !(cor&red) )
-        {
-            fwrite(&white, 3, 1, redptr);
-            continue;
-        }
-        else
-        {
-            //cor &= red;
-            fwrite(&red, 3, 1, redptr);
-            continue;
-        }
-    }*/
-
     return 0;
 }
