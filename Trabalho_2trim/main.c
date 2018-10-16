@@ -39,6 +39,7 @@ struct bmpinfoheader{
 
 void menu(int *escolha);
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo);
+int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 
 int main()
@@ -102,10 +103,11 @@ int main()
                     break;
             case 2:
                 if(flag != 1) break;
-                buscacor(filePtr,ptrheader,ptrinfo,nome);
+                separacor(filePtr,ptrheader,ptrinfo,nome);
                 break;
             case 3:
                 if(flag != 1) break;
+                buscacor(filePtr,ptrheader,ptrinfo,nome);
                 break;
             case 4:
                 if(flag != 1) break;
@@ -174,7 +176,7 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     return 0;
 }
 
-int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
+int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
     int     i, j,
             altura  = ptrinfo->biHeight,
@@ -186,7 +188,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             green = 0x00ff00,
             cor   = 0x00;
     BYTE    nulo  = 0x00;
-    FILE    *redptr;
+    FILE    *newFilePtr;
 
     puts("\n\nEscolha a cor que desejas separar:");
     puts("1. Vermelho");
@@ -217,8 +219,8 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     }
     strcat(arquivo, ".bmp");
 
-    redptr = fopen(arquivo,"w+b");
-    if (redptr == 0)
+    newFilePtr = fopen(arquivo,"w+b");
+    if (newFilePtr == 0)
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
@@ -232,11 +234,11 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     }
 
     //Passando cabeçalho para novo arquivo
-    fwrite(&ptrheader->bfType, sizeof(WORD), 1, redptr);
-    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, redptr);
-    fwrite(ptrinfo, sizeof(*ptrinfo), 1, redptr);
+    fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
+    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
+    fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
 
-    fseek(redptr, ptrheader->bfOffBits, SEEK_SET);
+    fseek(newFilePtr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
     for(i = 0; i < altura; i++)
@@ -246,18 +248,181 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fread(&cor, 3, 1, adr);
             if(cor != option)
             {
-                fwrite(&white, 3, 1, redptr);
+                fwrite(&white, 3, 1, newFilePtr);
             }
             else
             {
-                fwrite(&option, 3, 1, redptr);
+                fwrite(&option, 3, 1, newFilePtr);
             }
         }
         for(j = 0; j < (largura%4); j++)
         {
-            fwrite(&nulo, 1, 1, redptr);
+            fwrite(&nulo, 1, 1, newFilePtr);
             fseek(adr, 1, SEEK_CUR);
         }
     }
+    return 0;
+}
+
+int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
+{
+    int     x, y,
+            altura  = ptrinfo->biHeight,
+            largura = ptrinfo->biWidth,
+            up      = 0,
+            down    = altura,
+            left    = largura,
+            right   = 0;;
+
+    DWORD   option,
+            red   = 0xff0000,
+            blue  = 0x0000ff,
+            green = 0x00ff00,
+            black = 0x000000,
+            cor   = 0x00;
+    FILE    *newFilePtr;
+    /*
+    up[0][0] = 0;
+    up[0][1] = 0;
+    down[0][0] = 0;
+    down[0][1] = altura;
+    left[0][0] = largura;
+    left[0][1] = 0;
+    right[0][0] = 0;
+    right[0][1] = 0;
+    */
+
+    puts("\n\nEscolha a cor que estais a procurar:");
+    puts("1. Vermelho");
+    puts("2. Verde");
+    puts("3. Azul");
+
+    do
+    {
+        option = ( getche()-'0' );
+        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n");
+    }while(option < 1 || option > 3);
+    puts(" ");
+
+    switch(option)
+    {
+        case 1:
+            option = red;
+            strcat(arquivo, "_R_achei");
+            break;
+        case 2:
+            option = green;
+            strcat(arquivo, "_G_achei");
+            break;
+        case 3:
+            option = blue;
+            strcat(arquivo, "_B_achei");
+            break;
+    }
+    strcat(arquivo, ".bmp");
+
+    newFilePtr = fopen(arquivo,"w+b");
+    if (newFilePtr == 0)
+    {
+        puts("Deu ruim");
+        puts("Pressione qualquer tecla para continuar...");
+        while(!kbhit()){};
+        system("cls");
+        main();
+    }
+    else
+    {
+        printf("O arquivo %s foi criado com sucesso!", arquivo);
+    }
+
+    //Passando cabeçalho para novo arquivo
+    fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
+    fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
+    fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
+
+    fseek(newFilePtr, ptrheader->bfOffBits, SEEK_SET);
+    fseek(adr, ptrheader->bfOffBits, SEEK_SET);
+
+    for(y = 0; y < altura; y++)
+    {
+        for(x = 0; x < largura; x++)
+        {
+            fread(&cor, 3, 1, adr);
+            if(cor == option)
+            {
+                if(altura  > up)     up   = altura;
+                if(altura  < down)   down = altura;
+                if(largura > left)   left = largura;
+                if(largura < right)  right = largura;
+                /*if(y > up[0][1])
+                {
+                    up[0][0] = x;
+                    up[0][1] = y;
+                }
+                if(x < left[0][0])
+                {
+                    left[0][0] = x;
+                    left[0][1] = y;
+                }
+                if(y < down[0][1])
+                {
+                    down[0][0] = x;
+                    down[0][1] = y;
+                }
+                if(x > right[0][0])
+                {
+                    right[0][0] = x;
+                    right[0][1] = y;
+                }*/
+            }
+        }
+    }
+    /*up[0][1]    += 2;
+    left[0][0]  -= 2;
+    down[0][1]  -= 2;
+    right[0][0] += 2;*/
+
+    up      += 2;
+    down    -= 2;
+    right   += 2;
+    left    -= 2;
+
+
+    for(y = 0; y < altura; y++)
+    {
+        for(x = 0; x < largura; x++)
+        {
+            /*if(altura == up[0][1] && largura <= right[0][0] && largura >= left[0][0] )
+            {
+                fwrite(&black, 3, 1, newFilePtr);
+                continue;
+            }*/
+
+            if(altura == up)
+            {
+                if(largura >= left && largura <= right)
+                {
+                    fwrite(&black, 3, 1, newFilePtr);
+                    fseek(adr, 3, SEEK_CUR);
+                }
+                else
+                {
+                    fread(&cor, 3, 1, adr);
+                    fwrite(&cor, 3, 1, newFilePtr);
+                }
+                continue;
+            }
+
+            fread(&cor, 3, 1, adr);
+            fwrite(&cor, 3, 1, newFilePtr);
+
+        }
+        for(x = 0; x < (largura%4); x++)
+        {
+            fwrite(&black, 1, 1, newFilePtr);
+            fseek(adr, 1, SEEK_CUR);
+        }
+    }
+
     return 0;
 }
