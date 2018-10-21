@@ -183,14 +183,17 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     int     i, j,
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
+
     DWORD   option,
             black = 0x000000,
             white = 0xffffff,
             red   = 0xff0000,
             blue  = 0x0000ff,
-            green = 0x00ff00,
+            green = 0x00ff00;
+
+    char    *nome,
             cor[3];
-    char    *nome;
+
     FILE    *newFilePtr;
 
     cor[0] = 0;
@@ -331,15 +334,24 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             up      = 0,
             down    = altura,
             left    = largura,
-            right   = 0;;
+            right   = 0;
 
     DWORD   option,
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
-            black = 0x000000,
-            cor   = 0x00;
+            black = 0x000000;
+
+    char   *nome,
+            cor[3];
+
     FILE    *newFilePtr;
+
+    cor[0] = 0;
+    cor[1] = 0;
+    cor[2] = 0;
+    nome = malloc(sizeof(arquivo));
+
     /*
     up[0][0] = 0;
     up[0][1] = 0;
@@ -350,6 +362,8 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     right[0][0] = 0;
     right[0][1] = 0;
     */
+
+    strcpy(nome, arquivo);
 
     puts("\n\nEscolha a cor que estais a procurar:");
     puts("1. Vermelho");
@@ -367,20 +381,20 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         case 1:
             option = red;
-            strcat(arquivo, "_R_achei");
+            strcat(nome, "_R_achei");
             break;
         case 2:
             option = green;
-            strcat(arquivo, "_G_achei");
+            strcat(nome, "_G_achei");
             break;
         case 3:
             option = blue;
-            strcat(arquivo, "_B_achei");
+            strcat(nome, "_B_achei");
             break;
     }
-    strcat(arquivo, ".bmp");
+    strcat(nome, ".bmp");
 
-    newFilePtr = fopen(arquivo,"w+b");
+    newFilePtr = fopen(nome,"w+b");
     if (newFilePtr == 0)
     {
         puts("Deu ruim");
@@ -391,7 +405,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     }
     else
     {
-        printf("O arquivo %s foi criado com sucesso!", arquivo);
+        printf("O arquivo %s foi criado com sucesso!", nome);
     }
 
     //Passando cabeçalho para novo arquivo
@@ -406,8 +420,11 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         for(x = 0; x < largura; x++)
         {
-            fread(&cor, 3, 1, adr);
-            if(cor == option)
+            fread(&cor[0], 1, 1, adr);  //Blue
+            fread(&cor[1], 1, 1, adr);  //Green
+            fread(&cor[2], 1, 1, adr);  //Red
+
+            //if(cor == option)
             {
                 if(altura  > up)     up   = altura;
                 if(altura  < down)   down = altura;
@@ -491,18 +508,25 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     int     i, j,
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
+
     DWORD   black = 0x000000,
             white = 0xffffff,
-            gray  = 0,
+            gray  = 0;
+
+    char    *nome,
             cor[3];
+
     FILE    *newFilePtr;
-    strcat(arquivo, "_gs.bmp");
 
     cor[0] = 0;
     cor[1] = 0;
     cor[2] = 0;
+    nome = malloc(sizeof(arquivo));
 
-     newFilePtr = fopen(arquivo,"w+b");
+    strcpy(nome, arquivo);
+    strcat(nome, "_gs.bmp");
+
+    newFilePtr = fopen(nome,"w+b");
     if (newFilePtr == 0)
     {
         puts("Deu ruim");
@@ -513,7 +537,7 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     }
     else
     {
-        printf("\nO arquivo %s foi criado com sucesso!", arquivo);
+        printf("\nO arquivo %s foi criado com sucesso!", nome);
     }
 
     //Passando cabeçalho para novo arquivo
@@ -538,7 +562,7 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
                 cor[1]  *=  0.59;
                 cor[2]  *=  0.11;
 
-                gray = ( (cor[0] + cor[1] + cor[2])/3);
+                gray = ( (cor[0] + cor[1] + cor[2]));
 
                 fwrite(&gray, 1, 1, newFilePtr);
                 fwrite(&gray, 1, 1, newFilePtr);
