@@ -184,14 +184,21 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
     DWORD   option,
-            //black = 0x000000,
+            black = 0x000000,
             white = 0xffffff,
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
-            cor   = 0x00;
-    BYTE    nulo  = 0x00;
+            cor[3];
+    char    *nome;
     FILE    *newFilePtr;
+
+    cor[0] = 0;
+    cor[1] = 0;
+    cor[2] = 0;
+    nome = malloc(sizeof(arquivo));
+
+    strcpy(nome, arquivo);
 
     puts("\n\nEscolha a cor que desejas separar:");
     puts("1. Vermelho");
@@ -210,20 +217,20 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     {
         case 1:
             option = red;
-            strcat(arquivo, "_R");
+            strcat(nome, "_R");
             break;
         case 2:
             option = green;
-            strcat(arquivo, "_G");
+            strcat(nome, "_G");
             break;
         case 3:
             option = blue;
-            strcat(arquivo, "_B");
+            strcat(nome, "_B");
             break;
     }
-    strcat(arquivo, ".bmp");
+    strcat(nome, ".bmp");
 
-    newFilePtr = fopen(arquivo,"w+b");
+    newFilePtr = fopen(nome,"w+b");
     if (newFilePtr == 0)
     {
         puts("Deu ruim");
@@ -234,7 +241,7 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     }
     else
     {
-        printf("O arquivo %s foi criado com sucesso!", arquivo);
+        printf("O arquivo %s foi criado com sucesso!", nome);
     }
 
     //Passando cabeçalho para novo arquivo
@@ -249,34 +256,57 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     {
         for(j = 0; j < largura; j++)
         {
-            fread(&cor, 3, 1, adr);
-            /*if(cor != option)
-            {
-                fwrite(&white, 3, 1, newFilePtr);
-            }*/
+            fread(&cor[0], 1, 1, adr);  //Blue
+            fread(&cor[1], 1, 1, adr);  //Green
+            fread(&cor[2], 1, 1, adr);  //Red
 
-            if(cor != white)
+            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
                 if(option == red)
-                    cor -= cor%0x10000;
+                {
+                    //if( (cor[2] - cor[0] < 30) || (cor[2] - cor[1] < 30) )
+                    if(cor[2] > 40)
+                    {
+                        if( (cor[0] < 30) && (cor[1] < 30) )
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
+                }
+                if(option == green)
+                {
+                    //if( (cor[1] - cor[0] < 30) || (cor[1] - cor[2] < 30) )
+                    if(cor[1] > 40)
+                    {
+                        if( (cor[0] < 30) && (cor[2] < 30) )
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
+                }
                 if(option == blue)
-                    cor = cor%0x100;
-                if(option == green)
-                    cor = (cor%0x10000 - cor%0x100); //FF0000;
-                fwrite(&cor, 3, 1, newFilePtr);
-                /*if(option == blue)
                 {
-                    if(cor < 0x1FF) fwrite(&cor, 3, 1, newFilePtr);// 0x0000FF + 256
+                    //if( (cor[0] - cor[1] < 30) || (cor[0] - cor[2] < 30) )
+                    if(cor[0] > 40)
+                    {
+                        if( (cor[1] < 30) && (cor[2] < 30) )
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
                 }
-                if(option == green)
-                {
-                    if(cor > 0x1FF && cor < 0x10000) fwrite(&cor, 3, 1, newFilePtr); // 0x00FF00 + 100
-                }
-                if(option == red)
-                {
-                    if(cor > 0x10000 && cor < 0xFFFFFF) fwrite(&cor, 3, 1, newFilePtr);
-                }*/
-
             }
             else
             {
@@ -286,7 +316,7 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
         }
         for(j = 0; j < (largura%4); j++)
         {
-            fwrite(&nulo, 1, 1, newFilePtr);
+            fwrite(&black, 1, 1, newFilePtr);
             fseek(adr, 1, SEEK_CUR);
         }
     }
@@ -295,7 +325,6 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
-
     int     x, y,
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth,
