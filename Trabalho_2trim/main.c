@@ -180,18 +180,31 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 
 int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
-    int     i, j,
+    int     i, j,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
-    DWORD   option,
-            //black = 0x000000,
+
+    DWORD   option,             // Variável da função escolhida pelo usuário
+            black = 0x000000,
             white = 0xffffff,
             red   = 0xff0000,
             blue  = 0x0000ff,
-            green = 0x00ff00,
-            cor   = 0x00;
-    BYTE    nulo  = 0x00;
-    FILE    *newFilePtr;
+            green = 0x00ff00;
+
+    char    *nome,              // Nome do arquivo a ser criado dentro dessa função
+            cor[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
+
+    //Garantindo que o vetor está zerado (Previne erros)
+    cor[0] = 0;
+    cor[1] = 0;
+    cor[2] = 0;
+
+    //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
+    nome = malloc(sizeof(arquivo));
+
+    strcpy(nome, arquivo); //Copiando a string do nome original para uma nova variavel
 
     puts("\n\nEscolha a cor que desejas separar:");
     puts("1. Vermelho");
@@ -201,8 +214,8 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     //Leitura da tecla pressionada
     do
     {
-        option = ( getche()-'0' );
-        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n");
+        option = ( getche() - '0' );
+        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n"); // Mensagem cordial
     }while(option < 1 || option > 3);
     puts(" ");
 
@@ -210,38 +223,49 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     {
         case 1:
             option = red;
-            strcat(arquivo, "_R");
+            strcat(nome, "_R");     // Colocando o sufixo da cor separada
             break;
         case 2:
             option = green;
-            strcat(arquivo, "_G");
+            strcat(nome, "_G");     // Colocando o sufixo da cor separada
             break;
         case 3:
             option = blue;
-            strcat(arquivo, "_B");
+            strcat(nome, "_B");     // Colocando o sufixo da cor separada
             break;
     }
-    strcat(arquivo, ".bmp");
+    strcat(nome, ".bmp");           // Colocando o .bmp ao fim do nome do arquivo
 
-    newFilePtr = fopen(arquivo,"w+b");
-    if (newFilePtr == 0)
+    newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
+    if (newFilePtr == 0)            // Em caso de erro
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
-        while(!kbhit()){};
-        system("cls");
-        main();
+        while(!kbhit()){};          // Esperando qualquer tecla ser pressionada
+        system("cls");              // Limpa tela
+        main();                     // Volta para o começo
     }
     else
     {
-        printf("O arquivo %s foi criado com sucesso!", arquivo);
+        printf("O arquivo %s foi criado com sucesso!", nome);
     }
 
-    //Passando cabeçalho para novo arquivo
+    /** Passando cabeçalho para novo arquivo:
+    *
+    *   Tive que usar dois fwrite pra passar as informações
+    *   contidas na struct ptrheader pois por algum motivo
+    *   sempre acabava indo junto alguns bytes nulos
+    *   e mesmo assim tive que subtrair 4 bytes em vez de
+    *   2 (Tamanho do bfType passado no primeiro fwrite)
+    *   porque ficavam sobrando dois bytes nulos no final
+    *
+    */
+
     fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
 
+    // Pulando o ponteiro do arquivo pra o começo dos pixels pra garantir
     fseek(newFilePtr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
@@ -249,34 +273,57 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     {
         for(j = 0; j < largura; j++)
         {
-            fread(&cor, 3, 1, adr);
-            /*if(cor != option)
-            {
-                fwrite(&white, 3, 1, newFilePtr);
-            }*/
+            // Lendo cada valor RGB de cada pixel,
+            // lembrando que no arquivo eles estão na sequência BGR
+            fread(&cor[0], 1, 1, adr);  //Blue
+            fread(&cor[1], 1, 1, adr);  //Green
+            fread(&cor[2], 1, 1, adr);  //Red
 
-            if(cor != white)
+            /// Testando se a soma dos 3 for menor do que a cor branca
+            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
                 if(option == red)
-                    cor -= cor%0x10000;
-                if(option == blue)
-                    cor = cor%0x100;
-                if(option == green)
-                    cor = (cor%0x10000 - cor%0x100); //FF0000;
-                fwrite(&cor, 3, 1, newFilePtr);
-                /*if(option == blue)
                 {
-                    if(cor < 0x1FF) fwrite(&cor, 3, 1, newFilePtr);// 0x0000FF + 256
+                    if(cor[2] > 40) // Mínimo pra ser considerado vermelho
+                    {
+                        if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
                 }
                 if(option == green)
                 {
-                    if(cor > 0x1FF && cor < 0x10000) fwrite(&cor, 3, 1, newFilePtr); // 0x00FF00 + 100
+                    if(cor[1] > 40) // Mínimo pra ser considerado verde
+                    {
+                        if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
                 }
-                if(option == red)
+                if(option == blue) // Mínimo pra ser considerado azul
                 {
-                    if(cor > 0x10000 && cor < 0xFFFFFF) fwrite(&cor, 3, 1, newFilePtr);
-                }*/
-
+                    if(cor[0] > 40)
+                    {
+                        if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
+                        {
+                            fwrite(&cor[0], 1, 1, newFilePtr);
+                            fwrite(&cor[1], 1, 1, newFilePtr);
+                            fwrite(&cor[2], 1, 1, newFilePtr);
+                        }
+                        else fwrite(&white, 3, 1, newFilePtr);
+                    }
+                    else fwrite(&white, 3, 1, newFilePtr);
+                }
             }
             else
             {
@@ -284,9 +331,11 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             }
 
         }
+        ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
         for(j = 0; j < (largura%4); j++)
         {
-            fwrite(&nulo, 1, 1, newFilePtr);
+            fwrite(&black, 1, 1, newFilePtr);
+            //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
             fseek(adr, 1, SEEK_CUR);
         }
     }
@@ -295,32 +344,34 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
-
-    int     x, y,
+    int     x, y,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth,
-            up      = 0,
-            down    = altura,
-            left    = largura,
-            right   = 0;;
+            up      = 0,        // Representa a parte mais alta do objeto
+            down    = altura,   // Representa a parte mais baixa do objeto
+            left    = largura,  // Representa a parte mais à esquerda do objeto
+            right   = 0;        // Representa a parte mais à direita do objeto
 
-    DWORD   option,
+    DWORD   option,             // Variável da função escolhida pelo usuário
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
-            black = 0x000000,
-            cor   = 0x00;
-    FILE    *newFilePtr;
-    /*
-    up[0][0] = 0;
-    up[0][1] = 0;
-    down[0][0] = 0;
-    down[0][1] = altura;
-    left[0][0] = largura;
-    left[0][1] = 0;
-    right[0][0] = 0;
-    right[0][1] = 0;
-    */
+            black = 0x000000;
+
+    char    *nome,              // Nome do arquivo a ser criado dentro dessa função
+            cor[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
+
+    //Garantindo que o vetor está zerado (Previne erros)
+    cor[0] = 0;
+    cor[1] = 0;
+    cor[2] = 0;
+
+    //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
+    nome = malloc(sizeof(arquivo));
+
+    strcpy(nome, arquivo); //Copiando a string do nome original para uma nova variavel
 
     puts("\n\nEscolha a cor que estais a procurar:");
     puts("1. Vermelho");
@@ -330,7 +381,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     do
     {
         option = ( getche()-'0' );
-        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n");
+        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n"); // Mensagem cordial
     }while(option < 1 || option > 3);
     puts(" ");
 
@@ -338,34 +389,44 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         case 1:
             option = red;
-            strcat(arquivo, "_R_achei");
+            strcat(nome, "_R_achei");     // Colocando o sufixo da cor encontrada
             break;
         case 2:
             option = green;
-            strcat(arquivo, "_G_achei");
+            strcat(nome, "_G_achei");     // Colocando o sufixo da cor encontrada
             break;
         case 3:
             option = blue;
-            strcat(arquivo, "_B_achei");
+            strcat(nome, "_B_achei");     // Colocando o sufixo da cor encontrada
             break;
     }
-    strcat(arquivo, ".bmp");
+    strcat(nome, ".bmp");           // Colocando o .bmp ao fim do nome do arquivo
 
-    newFilePtr = fopen(arquivo,"w+b");
-    if (newFilePtr == 0)
+    newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
+    if (newFilePtr == 0)            // Em caso de erro
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
-        while(!kbhit()){};
-        system("cls");
-        main();
+        while(!kbhit()){};          // Esperando qualquer tecla ser pressionada
+        system("cls");              // Limpa tela
+        main();                     // Volta para o começo
     }
     else
     {
-        printf("O arquivo %s foi criado com sucesso!", arquivo);
+        printf("O arquivo %s foi criado com sucesso!", nome);
     }
 
-    //Passando cabeçalho para novo arquivo
+    /** Passando cabeçalho para novo arquivo:
+    *
+    *   Tive que usar dois fwrite pra passar as informações
+    *   contidas na struct ptrheader pois por algum motivo
+    *   sempre acabava indo junto alguns bytes nulos
+    *   e mesmo assim tive que subtrair 4 bytes em vez de
+    *   2 (Tamanho do bfType passado no primeiro fwrite)
+    *   porque ficavam sobrando dois bytes nulos no final
+    *
+    */
+
     fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
@@ -377,60 +438,70 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         for(x = 0; x < largura; x++)
         {
-            fread(&cor, 3, 1, adr);
-            if(cor == option)
+            // Lendo cada valor RGB de cada pixel,
+            // lembrando que no arquivo eles estão na sequência BGR
+            fread(&cor[0], 1, 1, adr);  //Blue
+            fread(&cor[1], 1, 1, adr);  //Green
+            fread(&cor[2], 1, 1, adr);  //Red
+
+            /// Testando se a soma dos 3 for menor do que a cor branca
+            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
-                if(altura  > up)     up   = altura;
-                if(altura  < down)   down = altura;
-                if(largura > left)   left = largura;
-                if(largura < right)  right = largura;
-                /*if(y > up[0][1])
+                if(option == red)
                 {
-                    up[0][0] = x;
-                    up[0][1] = y;
+                    if(cor[2] > 40) // Mínimo pra ser considerado vermelho
+                    {
+                        if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(x < left[0][0])
+                if(option == green)
                 {
-                    left[0][0] = x;
-                    left[0][1] = y;
+                    if(cor[1] > 40) // Mínimo pra ser considerado verde
+                    {
+                        if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(y < down[0][1])
+                if(option == blue) // Mínimo pra ser considerado azul
                 {
-                    down[0][0] = x;
-                    down[0][1] = y;
+                    if(cor[0] > 40)
+                    {
+                        if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(x > right[0][0])
-                {
-                    right[0][0] = x;
-                    right[0][1] = y;
-                }*/
             }
         }
     }
-    /*up[0][1]    += 2;
-    left[0][0]  -= 2;
-    down[0][1]  -= 2;
-    right[0][0] += 2;*/
 
     up      += 2;
     down    -= 2;
     right   += 2;
     left    -= 2;
 
-
     for(y = 0; y < altura; y++)
     {
         for(x = 0; x < largura; x++)
         {
-            /*if(altura == up[0][1] && largura <= right[0][0] && largura >= left[0][0] )
+            if(y == up)
             {
-                fwrite(&black, 3, 1, newFilePtr);
-                continue;
-            }*/
-
-            if(altura == up)
-            {
-                if(largura >= left && largura <= right)
+                if(x >= left && y <= right)
                 {
                     fwrite(&black, 3, 1, newFilePtr);
                     fseek(adr, 3, SEEK_CUR);
@@ -447,47 +518,69 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fwrite(&cor, 3, 1, newFilePtr);
 
         }
+        ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
         for(x = 0; x < (largura%4); x++)
         {
             fwrite(&black, 1, 1, newFilePtr);
+            //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
             fseek(adr, 1, SEEK_CUR);
         }
     }
-
     return 0;
 }
 
 int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
-    int     i, j,
+    int     i, j,                   // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
+
     DWORD   black = 0x000000,
             white = 0xffffff,
-            gray  = 0,
-            cor[3];
-    FILE    *newFilePtr;
-    strcat(arquivo, "_gs.bmp");
+            gray  = 0;
 
+    char    *nome,                  // Nome do arquivo a ser criado dentro dessa função
+            cor[3];                 // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    FILE    *newFilePtr;
+
+    // Garantindo que o vetor está zerado (Previne erros)
     cor[0] = 0;
     cor[1] = 0;
     cor[2] = 0;
 
-     newFilePtr = fopen(arquivo,"w+b");
-    if (newFilePtr == 0)
+    //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
+    nome = malloc(sizeof(arquivo));
+
+    strcpy(nome, arquivo);          // Copiando a string do nome original para uma nova variavel
+
+    strcat(nome, "_gs.bmp");        // Adicionando os sufixos necessários ao fim do nome do arquivo
+
+    newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
+    if (newFilePtr == 0)            // Em caso de erro
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
-        while(!kbhit()){};
-        system("cls");
-        main();
+        while(!kbhit()){};          // Esperando qualquer tecla ser pressionada
+        system("cls");              // Limpa tela
+        main();                     // Volta para o começo
     }
     else
     {
-        printf("\nO arquivo %s foi criado com sucesso!", arquivo);
+        printf("\nO arquivo %s foi criado com sucesso!", nome);
     }
 
-    //Passando cabeçalho para novo arquivo
+    /** Passando cabeçalho para novo arquivo:
+    *
+    *   Tive que usar dois fwrite pra passar as informações
+    *   contidas na struct ptrheader pois por algum motivo
+    *   sempre acabava indo junto alguns bytes nulos
+    *   e mesmo assim tive que subtrair 4 bytes em vez de
+    *   2 (Tamanho do bfType passado no primeiro fwrite)
+    *   porque ficavam sobrando dois bytes nulos no final
+    *
+    */
+
     fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
@@ -499,22 +592,26 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     {
         for(j = 0; j < largura; j++)
         {
-            fread(&cor[0], 1, 1, adr);
-            fread(&cor[1], 1, 1, adr);
-            fread(&cor[2], 1, 1, adr);
+            // Lendo cada valor RGB de cada pixel,
+            // lembrando que no arquivo eles estão na sequência BGR
+            fread(&cor[0], 1, 1, adr);  // Blue
+            fread(&cor[1], 1, 1, adr);  // Green
+            fread(&cor[2], 1, 1, adr);  // Red
 
             if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
-                cor[0]  *=  0.3;
-                cor[1]  *=  0.59;
-                cor[2]  *=  0.11;
+                // Cálculo aproximar os valores para o cinza
+                cor[0]  =   cor[0] * 0.3;
+                cor[1]  =   cor[1] * 0.59;
+                cor[2]  =   cor[2] * 0.11;
 
-                gray = ( (cor[0] + cor[1] + cor[2])/3);
+                gray = ( (cor[0] + cor[1] + cor[2]));
 
+                // Na escala de cinza, todos os valores para as tres cores são iguais
                 fwrite(&gray, 1, 1, newFilePtr);
                 fwrite(&gray, 1, 1, newFilePtr);
                 fwrite(&gray, 1, 1, newFilePtr);
-
+                // E sim, tem que escrever o comando três vezes se não não funciona
             }
             else
             {
@@ -522,9 +619,11 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             }
 
         }
+        ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
         for(j = 0; j < (largura%4); j++)
         {
             fwrite(&black, 1, 1, newFilePtr);
+            //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
             fseek(adr, 1, SEEK_CUR);
         }
     }
