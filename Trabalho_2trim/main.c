@@ -183,18 +183,29 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     int     i, j,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
+<<<<<<< HEAD
 
     DWORD   option,             // Variável da função escolhida pelo usuário
+=======
+    DWORD   option,
+>>>>>>> parent of c763577... Mais algumas melhoras
             black = 0x000000,
             white = 0xffffff,
             red   = 0xff0000,
             blue  = 0x0000ff,
+<<<<<<< HEAD
             green = 0x00ff00;
 
     char    *nome,              // Nome do arquivo a ser criado dentro dessa função
             cor[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
 
     FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
+=======
+            green = 0x00ff00,
+            cor[3];
+    char    *nome;
+    FILE    *newFilePtr;
+>>>>>>> parent of c763577... Mais algumas melhoras
 
     //Garantindo que o vetor está zerado (Previne erros)
     cor[0] = 0;
@@ -347,15 +358,23 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     int     x, y,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth,
+<<<<<<< HEAD
             up      = 0,        // Representa a parte mais alta do objeto
             down    = altura,   // Representa a parte mais baixa do objeto
             left    = largura,  // Representa a parte mais à esquerda do objeto
             right   = 0;        // Representa a parte mais à direita do objeto
+=======
+            up      = 0,
+            down    = altura,
+            left    = largura,
+            right   = 0;;
+>>>>>>> parent of c763577... Mais algumas melhoras
 
     DWORD   option,             // Variável da função escolhida pelo usuário
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
+<<<<<<< HEAD
             black = 0x000000;
 
     char    *nome,              // Nome do arquivo a ser criado dentro dessa função
@@ -373,6 +392,22 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
 
     strcpy(nome, arquivo); //Copiando a string do nome original para uma nova variavel
 
+=======
+            black = 0x000000,
+            cor   = 0x00;
+    FILE    *newFilePtr;
+    /*
+    up[0][0] = 0;
+    up[0][1] = 0;
+    down[0][0] = 0;
+    down[0][1] = altura;
+    left[0][0] = largura;
+    left[0][1] = 0;
+    right[0][0] = 0;
+    right[0][1] = 0;
+    */
+
+>>>>>>> parent of c763577... Mais algumas melhoras
     puts("\n\nEscolha a cor que estais a procurar:");
     puts("1. Vermelho");
     puts("2. Verde");
@@ -389,6 +424,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         case 1:
             option = red;
+<<<<<<< HEAD
             strcat(nome, "_R_achei");     // Colocando o sufixo da cor encontrada
             break;
         case 2:
@@ -404,6 +440,23 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
 
     newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
     if (newFilePtr == 0)            // Em caso de erro
+=======
+            strcat(arquivo, "_R_achei");
+            break;
+        case 2:
+            option = green;
+            strcat(arquivo, "_G_achei");
+            break;
+        case 3:
+            option = blue;
+            strcat(arquivo, "_B_achei");
+            break;
+    }
+    strcat(arquivo, ".bmp");
+
+    newFilePtr = fopen(arquivo,"w+b");
+    if (newFilePtr == 0)
+>>>>>>> parent of c763577... Mais algumas melhoras
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
@@ -413,7 +466,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     }
     else
     {
-        printf("O arquivo %s foi criado com sucesso!", nome);
+        printf("O arquivo %s foi criado com sucesso!", arquivo);
     }
 
     /** Passando cabeçalho para novo arquivo:
@@ -438,6 +491,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     {
         for(x = 0; x < largura; x++)
         {
+<<<<<<< HEAD
             // Lendo cada valor RGB de cada pixel,
             // lembrando que no arquivo eles estão na sequência BGR
             fread(&cor[0], 1, 1, adr);  //Blue
@@ -446,6 +500,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
 
             /// Testando se a soma dos 3 for menor do que a cor branca
             if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
+=======
+            fread(&cor, 3, 1, adr);
+            if(cor == option)
+>>>>>>> parent of c763577... Mais algumas melhoras
             {
                 if(option == red)
                 {
@@ -534,20 +592,26 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     int     i, j,                   // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth;
-
     DWORD   black = 0x000000,
             white = 0xffffff,
+<<<<<<< HEAD
             gray  = 0;
 
     char    *nome,                  // Nome do arquivo a ser criado dentro dessa função
             cor[3];                 // Cada posição corresponde ao valor de 0 a 255 de cada cor
 
+=======
+            gray  = 0,
+            cor[3];
+>>>>>>> parent of c763577... Mais algumas melhoras
     FILE    *newFilePtr;
+    strcat(arquivo, "_gs.bmp");
 
     // Garantindo que o vetor está zerado (Previne erros)
     cor[0] = 0;
     cor[1] = 0;
     cor[2] = 0;
+<<<<<<< HEAD
 
     //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
     nome = malloc(sizeof(arquivo));
@@ -558,6 +622,11 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
     newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
     if (newFilePtr == 0)            // Em caso de erro
+=======
+
+     newFilePtr = fopen(arquivo,"w+b");
+    if (newFilePtr == 0)
+>>>>>>> parent of c763577... Mais algumas melhoras
     {
         puts("Deu ruim");
         puts("Pressione qualquer tecla para continuar...");
@@ -567,7 +636,7 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     }
     else
     {
-        printf("\nO arquivo %s foi criado com sucesso!", nome);
+        printf("\nO arquivo %s foi criado com sucesso!", arquivo);
     }
 
     /** Passando cabeçalho para novo arquivo:
@@ -605,7 +674,7 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
                 cor[1]  =   cor[1] * 0.59;
                 cor[2]  =   cor[2] * 0.11;
 
-                gray = ( (cor[0] + cor[1] + cor[2]));
+                gray = ( (cor[0] + cor[1] + cor[2])/3);
 
                 // Na escala de cinza, todos os valores para as tres cores são iguais
                 fwrite(&gray, 1, 1, newFilePtr);

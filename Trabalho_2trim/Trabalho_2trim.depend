@@ -1,5 +1,9 @@
 # depslib dependency file v1.0
+<<<<<<< HEAD
 1540662557 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
+=======
+1540149437 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
+>>>>>>> parent of c763577... Mais algumas melhoras
 	<stdio.h>
 	<stdlib.h>
 	<locale.h>
