@@ -444,59 +444,64 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fread(&cor[1], 1, 1, adr);  //Green
             fread(&cor[2], 1, 1, adr);  //Red
 
-            //if(cor == option)
+            /// Testando se a soma dos 3 for menor do que a cor branca
+            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
-                if(altura  > up)     up   = altura;
-                if(altura  < down)   down = altura;
-                if(largura > left)   left = largura;
-                if(largura < right)  right = largura;
-                /*if(y > up[0][1])
+                if(option == red)
                 {
-                    up[0][0] = x;
-                    up[0][1] = y;
+                    if(cor[2] > 40) // Mínimo pra ser considerado vermelho
+                    {
+                        if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(x < left[0][0])
+                if(option == green)
                 {
-                    left[0][0] = x;
-                    left[0][1] = y;
+                    if(cor[1] > 40) // Mínimo pra ser considerado verde
+                    {
+                        if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(y < down[0][1])
+                if(option == blue) // Mínimo pra ser considerado azul
                 {
-                    down[0][0] = x;
-                    down[0][1] = y;
+                    if(cor[0] > 40)
+                    {
+                        if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
+                        {
+                            if(y  > up)     up      =   y;
+                            if(y  < down)   down    =   y;
+                            if(x  > left)   left    =   x;
+                            if(x  < right)  right   =   x;
+                        }
+                    }
                 }
-                if(x > right[0][0])
-                {
-                    right[0][0] = x;
-                    right[0][1] = y;
-                }*/
             }
         }
     }
-    /*up[0][1]    += 2;
-    left[0][0]  -= 2;
-    down[0][1]  -= 2;
-    right[0][0] += 2;*/
 
     up      += 2;
     down    -= 2;
     right   += 2;
     left    -= 2;
 
-
     for(y = 0; y < altura; y++)
     {
         for(x = 0; x < largura; x++)
         {
-            /*if(altura == up[0][1] && largura <= right[0][0] && largura >= left[0][0] )
+            if(y == up)
             {
-                fwrite(&black, 3, 1, newFilePtr);
-                continue;
-            }*/
-
-            if(altura == up)
-            {
-                if(largura >= left && largura <= right)
+                if(x >= left && y <= right)
                 {
                     fwrite(&black, 3, 1, newFilePtr);
                     fseek(adr, 3, SEEK_CUR);
@@ -521,7 +526,6 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fseek(adr, 1, SEEK_CUR);
         }
     }
-
     return 0;
 }
 
@@ -597,9 +601,10 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
             {
                 // Cálculo aproximar os valores para o cinza
-                cor[0]  *=  0.3;
-                cor[1]  *=  0.59;
-                cor[2]  *=  0.11;
+                cor[0]  =   cor[0] * 0.3;
+                cor[1]  =   cor[1] * 0.59;
+                cor[2]  =   cor[2] * 0.11;
+
                 gray = ( (cor[0] + cor[1] + cor[2]));
 
                 // Na escala de cinza, todos os valores para as tres cores são iguais
