@@ -11,30 +11,26 @@
 #include <conio.h>
 #include <time.h>
 
-typedef char  BYTE; // 1 Bytes
-typedef unsigned short WORD; // 2 Bytes
-typedef unsigned int   DWORD;// 4 Bytes
-
 struct bmpheader {
-	WORD	bfType;         //Assinatura do arquivo (BM)
-	DWORD	bfSize;         //Tamanho do arquivo
-	WORD	bfReserved1;    //Reservado
-	WORD	bfReserved2;    //Reservado
-	DWORD	bfOffBits;      //Numero de bytes do cabeçalho até o começo do arquivo
+	short  	bfType;         //Assinatura do arquivo (BM)
+	int 	bfSize;         //Tamanho do arquivo
+	short	bfReserved1;    //Reservado
+	short	bfReserved2;    //Reservado
+	int	    bfOffBits;      //Numero de bytes do cabeçalho até o começo do arquivo
     };
 
 struct bmpinfoheader{
-    DWORD biSize;           //Tamanho do cabeçalho, em bytes
-    DWORD biWidth;          //Largura em pixels
-    DWORD biHeight;         //Altura em pixels
-    WORD  biPlanes;         //Nº de planos da imagem, deve ser 1
-    WORD  biBitCount;       //Números de bits por pixel
-    DWORD biCompression;    //Compressão usada
-    DWORD biSizeImage;      //Tamanho de dados da imagem
-    DWORD biXPelsPerMeter;  //Resolução horizontal pixel/m
-    DWORD biYPelsPerMeter;  //Resolução vertical pixel/m
-    DWORD biClrUsed;        //Nº de cores usadas
-    DWORD biClrImportant;   //Nº de cores importantes
+    int     biSize;           //Tamanho do cabeçalho, em bytes
+    int     biWidth;          //Largura em pixels
+    int     biHeight;         //Altura em pixels
+    short   biPlanes;         //Nº de planos da imagem, deve ser 1
+    short   biBitCount;       //Números de bits por pixel
+    int     biCompression;    //Compressão usada
+    int     biSizeImage;      //Tamanho de dados da imagem
+    int     biXPelsPerMeter;  //Resolução horizontal pixel/m
+    int     biYPelsPerMeter;  //Resolução vertical pixel/m
+    int     biClrUsed;        //Nº de cores usadas
+    int     biClrImportant;   //Nº de cores importantes
     };
 
 void menu(int *escolha);
@@ -122,6 +118,8 @@ int main()
     while(flag != 2);
     printf("\n");
     fclose(filePtr);
+    free(ptrheader);
+    free(ptrinfo);
     return 0;
 }
 
@@ -140,29 +138,29 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 {
     /// bmpheader
     fseek(adr, 0, SEEK_SET);                                //Garantindo que começa do começo
-    fread(&ptrheader->bfType, sizeof(WORD), 1, adr);        //Lendo assinatura do arquivo
+    fread(&ptrheader->bfType, sizeof(short), 1, adr);        //Lendo assinatura do arquivo
     printf("\n%d %x", ptrheader->bfType, ptrheader->bfType);
     if(ptrheader->bfType != 0x4d42)                         //Checa assinatura
     {
         puts("O arquivo não é .bmp!");
         return 0;
     }
-    fread(&ptrheader->bfSize, sizeof(DWORD), 1, adr);       //Lendo Qtd de bytes do cabeçalho
-    fread(&ptrheader->bfReserved1, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 1
-    fread(&ptrheader->bfReserved2, sizeof(WORD), 1, adr);   //Lendo Byte Reservado 2
-    fread(&ptrheader->bfOffBits, sizeof(DWORD), 1, adr);    //Lendo BfOffSetBits
+    fread(&ptrheader->bfSize, sizeof(int), 1, adr);       //Lendo Qtd de bytes do cabeçalho
+    fread(&ptrheader->bfReserved1, sizeof(short), 1, adr);   //Lendo Byte Reservado 1
+    fread(&ptrheader->bfReserved2, sizeof(short), 1, adr);   //Lendo Byte Reservado 2
+    fread(&ptrheader->bfOffBits, sizeof(int), 1, adr);    //Lendo BfOffSetBits
     /// bmpinfoheader
-    fread(&ptrinfo->biSize, sizeof(DWORD), 1, adr);         //Lendo Ttamanho do arquivo
-    fread(&ptrinfo->biWidth, sizeof(DWORD), 1, adr);        //Lendo Largura
-    fread(&ptrinfo->biHeight, sizeof(DWORD), 1, adr);       //Lendo Altura
-    fread(&ptrinfo->biPlanes, sizeof(WORD), 1, adr);        //Lendo Nº de planos da imagem
-    fread(&ptrinfo->biBitCount, sizeof(WORD), 1, adr);      //Lendo Quantidade de bits por pixel
-    fread(&ptrinfo->biCompression, sizeof(DWORD), 1, adr);  //Lendo Compressão usada
-    fread(&ptrinfo->biSizeImage, sizeof(DWORD), 1, adr);    //Lendo Tamanho de dados da imagem
-    fread(&ptrinfo->biXPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução horizontal pixel/m
-    fread(&ptrinfo->biYPelsPerMeter, sizeof(DWORD), 1, adr);//Lendo Resolução vertical pixel/m
-    fread(&ptrinfo->biClrUsed, sizeof(DWORD), 1, adr);      //Lendo Nº de cores usadas
-    fread(&ptrinfo->biClrImportant, sizeof(DWORD), 1, adr); //Lendo Nº de cores importantes
+    fread(&ptrinfo->biSize, sizeof(int), 1, adr);         //Lendo Ttamanho do arquivo
+    fread(&ptrinfo->biWidth, sizeof(int), 1, adr);        //Lendo Largura
+    fread(&ptrinfo->biHeight, sizeof(int), 1, adr);       //Lendo Altura
+    fread(&ptrinfo->biPlanes, sizeof(short), 1, adr);        //Lendo Nº de planos da imagem
+    fread(&ptrinfo->biBitCount, sizeof(short), 1, adr);      //Lendo Quantidade de bits por pixel
+    fread(&ptrinfo->biCompression, sizeof(int), 1, adr);  //Lendo Compressão usada
+    fread(&ptrinfo->biSizeImage, sizeof(int), 1, adr);    //Lendo Tamanho de dados da imagem
+    fread(&ptrinfo->biXPelsPerMeter, sizeof(int), 1, adr);//Lendo Resolução horizontal pixel/m
+    fread(&ptrinfo->biYPelsPerMeter, sizeof(int), 1, adr);//Lendo Resolução vertical pixel/m
+    fread(&ptrinfo->biClrUsed, sizeof(int), 1, adr);      //Lendo Nº de cores usadas
+    fread(&ptrinfo->biClrImportant, sizeof(int), 1, adr); //Lendo Nº de cores importantes
 
 
     printf("\nAssinatura: %c%c",ptrheader->bfType%0x100,ptrheader->bfType/0x100);
@@ -182,17 +180,16 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 {
     int     i, j,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
-            largura = ptrinfo->biWidth;
-
-    DWORD   option,             // Variável da função escolhida pelo usuário
-            black = 0x000000,
-            white = 0xffffff,
-            red   = 0xff0000,
-            blue  = 0x0000ff,
-            green = 0x00ff00;
-
-    char    *nome,              // Nome do arquivo a ser criado dentro dessa função
+            largura = ptrinfo->biWidth,
+            option  = 0,        // Variável da função escolhida pelo usuário
+            black   = 0x000000,
+            white   = 0xffffff,
+            red     = 0xff0000,
+            blue    = 0x0000ff,
+            green   = 0x00ff00,
             cor[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    char    *nome;              // Nome do arquivo a ser criado dentro dessa função
 
     FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
 
@@ -261,7 +258,7 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     *
     */
 
-    fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
+    fwrite(&ptrheader->bfType, sizeof(short), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
 
@@ -339,6 +336,7 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             fseek(adr, 1, SEEK_CUR);
         }
     }
+    free(nome);
     return 0;
 }
 
@@ -350,16 +348,16 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             up      = 0,        // Representa a parte mais alta do objeto
             down    = altura,   // Representa a parte mais baixa do objeto
             left    = largura,  // Representa a parte mais à esquerda do objeto
-            right   = 0;        // Representa a parte mais à direita do objeto
-
-    DWORD   option,             // Variável da função escolhida pelo usuário
+            right   = 0,        // Representa a parte mais à direita do objeto
+            option  = 0,             // Variável da função escolhida pelo usuário
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
-            black = 0x000000;
+            black = 0x000000,
+            cor[3];           // Cada posição corresponde ao valor de 0 a 255 de cada cor
 
-    char    *nome,              // Nome do arquivo a ser criado dentro dessa função
-            cor[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    char    *nome;              // Nome do arquivo a ser criado dentro dessa função
 
     FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
 
@@ -427,7 +425,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     *
     */
 
-    fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
+    fwrite(&ptrheader->bfType, sizeof(short), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
 
@@ -533,14 +531,14 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 {
     int     i, j,                   // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
-            largura = ptrinfo->biWidth;
-
-    DWORD   black = 0x000000,
+            largura = ptrinfo->biWidth,
+            black = 0x000000,
             white = 0xffffff,
-            gray  = 0;
-
-    char    *nome,                  // Nome do arquivo a ser criado dentro dessa função
+            gray  = 0,
             cor[3];                 // Cada posição corresponde ao valor de 0 a 255 de cada cor
+
+    char    *nome;                  // Nome do arquivo a ser criado dentro dessa função
+
 
     FILE    *newFilePtr;
 
@@ -581,7 +579,7 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     *
     */
 
-    fwrite(&ptrheader->bfType, sizeof(WORD), 1, newFilePtr);
+    fwrite(&ptrheader->bfType, sizeof(short), 1, newFilePtr);
     fwrite(&ptrheader->bfSize, sizeof(*ptrheader)-4, 1, newFilePtr);
     fwrite(ptrinfo, sizeof(*ptrinfo), 1, newFilePtr);
 
@@ -627,5 +625,6 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
             fseek(adr, 1, SEEK_CUR);
         }
     }
+    free(nome);
     return 0;
 }
