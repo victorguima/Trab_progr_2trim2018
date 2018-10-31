@@ -343,6 +343,7 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo)
 {
     int     x, y,               // Variáveis de incremento do for
+            aux = 0,
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth,
             up      = 0,        // Representa a parte mais alta do objeto
@@ -451,10 +452,47 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
                         {
-                            if(y  >= up)     up      =  y;
+                            aux = ftell(adr);
+                            fseek(adr, -6, SEEK_CUR);
+
+                            fread(&cor[0], 1, 1, adr);  //Blue
+                            fread(&cor[1], 1, 1, adr);  //Green
+                            fread(&cor[2], 1, 1, adr);  //Red
+
+                            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) fwrite(&black, 3, 1, newFilePtr);
+
+                            fseek(adr, aux, SEEK_SET);
+                            fseek(adr, 1, SEEK_CUR);
+
+                            fread(&cor[0], 1, 1, adr);  //Blue
+                            fread(&cor[1], 1, 1, adr);  //Green
+                            fread(&cor[2], 1, 1, adr);  //Red
+
+                            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) fwrite(&black, 3, 1, newFilePtr);
+
+                            fseek(adr, aux, SEEK_SET);
+                            fseek(adr, -largura, SEEK_CUR);
+
+                            fread(&cor[0], 1, 1, adr);  //Blue
+                            fread(&cor[1], 1, 1, adr);  //Green
+                            fread(&cor[2], 1, 1, adr);  //Red
+
+                            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) fwrite(&black, 3, 1, newFilePtr);
+
+                            fseek(adr, aux, SEEK_SET);
+                            fseek(adr, largura, SEEK_CUR);
+
+                            fread(&cor[0], 1, 1, adr);  //Blue
+                            fread(&cor[1], 1, 1, adr);  //Green
+                            fread(&cor[2], 1, 1, adr);  //Red
+
+                            if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) fwrite(&black, 3, 1, newFilePtr);
+
+                            continue;
+                            /*if(y  >= up)     up      =  y;
                             if(y  <= down)   down    =  y;
                             if(x  <= left)   left    =  x;
-                            if(x  >= right)  right   =  x;
+                            if(x  >= right)  right   =  x;*/
                         }
                     }
                 }
@@ -464,10 +502,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
                         {
-                            if(y  >= up)     up      =  y;
+                            /*if(y  >= up)     up      =  y;
                             if(y  <= down)   down    =  y;
                             if(x  <= left)   left    =  x;
-                            if(x  >= right)  right   =  x;
+                            if(x  >= right)  right   =  x;*/
                         }
                     }
                 }
@@ -477,27 +515,37 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
                         {
-                            if(y  >= up)     up      =  y;
+                            /*if(y  >= up)     up      =  y;
                             if(y  <= down)   down    =  y;
                             if(x  <= left)   left    =  x;
-                            if(x  >= right)  right   =  x;
+                            if(x  >= right)  right   =  x;*/
                         }
                     }
                 }
             }
+            fwrite(&cor[0], 1, 1, newFilePtr);
+            fwrite(&cor[1], 1, 1, newFilePtr);
+            fwrite(&cor[2], 1, 1, newFilePtr);
+        }
+        ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
+        for(x = 0; x < (largura%4); x++)
+        {
+            fwrite(&black, 1, 1, newFilePtr);
+            //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
+            fseek(adr, 1, SEEK_CUR);
         }
     }
-
+/*
     up      +=   1;
     down    -=   1;
     left    -=   1;
-    right   +=   1;
+    right   +=   1;*/
 /*
     if(up    > altura)     up      = altura;
     if(down  <= 0)       down    = 1;
     if(left  <= 0)       left    = 0;
     if(right >= largura) right   = largura-1;*/
-
+/*
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
     for(y = altura; y > 0; y--)
@@ -546,10 +594,6 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fwrite(&cor[0], 1, 1, newFilePtr);
             fwrite(&cor[1], 1, 1, newFilePtr);
             fwrite(&cor[2], 1, 1, newFilePtr);
-            /*else{
-            fwrite(&black, 1, 1, newFilePtr);
-            fwrite(&black, 1, 1, newFilePtr);
-            fwrite(&black, 1, 1, newFilePtr);}*/
 
         }
         ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
@@ -559,7 +603,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
             fseek(adr, 1, SEEK_CUR);
         }
-    }
+    }*/
     return 0;
 }
 
