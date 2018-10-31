@@ -349,7 +349,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             down    = altura,   // Representa a parte mais baixa do objeto
             left    = largura,  // Representa a parte mais à esquerda do objeto
             right   = 0,        // Representa a parte mais à direita do objeto
-            option  = 0,             // Variável da função escolhida pelo usuário
+            option  = 0,        // Variável da função escolhida pelo usuário
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
@@ -432,7 +432,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     fseek(newFilePtr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    for(y = 0; y < altura; y++)
+    for(y = altura; y > 0; y--)
     {
         for(x = 0; x < largura; x++)
         {
@@ -451,10 +451,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
                         {
-                            if(y  > up)     up      =   y;
-                            if(y  < down)   down    =   y;
-                            if(x  > left)   left    =   x;
-                            if(x  < right)  right   =   x;
+                            if(y  >= up)     up      =  y;
+                            if(y  <= down)   down    =  y;
+                            if(x  <= left)   left    =  x;
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
@@ -464,10 +464,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
                         {
-                            if(y  > up)     up      =   y;
-                            if(y  < down)   down    =   y;
-                            if(x  > left)   left    =   x;
-                            if(x  < right)  right   =   x;
+                            if(y  >= up)     up      =  y;
+                            if(y  <= down)   down    =  y;
+                            if(x  <= left)   left    =  x;
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
@@ -477,10 +477,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
                         {
-                            if(y  > up)     up      =   y;
-                            if(y  < down)   down    =   y;
-                            if(x  > left)   left    =   x;
-                            if(x  < right)  right   =   x;
+                            if(y  >= up)     up      =  y;
+                            if(y  <= down)   down    =  y;
+                            if(x  <= left)   left    =  x;
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
@@ -488,32 +488,68 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
         }
     }
 
-    up      += 2;
-    down    -= 2;
-    right   += 2;
-    left    -= 2;
+    up      +=   1;
+    down    -=   1;
+    left    -=   1;
+    right   +=   1;
+/*
+    if(up    > altura)     up      = altura;
+    if(down  <= 0)       down    = 1;
+    if(left  <= 0)       left    = 0;
+    if(right >= largura) right   = largura-1;*/
 
-    for(y = 0; y < altura; y++)
+    fseek(adr, ptrheader->bfOffBits, SEEK_SET);
+
+    for(y = altura; y > 0; y--)
     {
         for(x = 0; x < largura; x++)
         {
-            if(y == up)
+            if(y <= up && y >= down)
             {
-                if(x >= left && y <= right)
+                if(x == left || x == right)
+                {
+                    fwrite(&black, 3, 1, newFilePtr);
+                    fseek(adr, 3, SEEK_CUR);
+                    continue;
+                }
+            }
+
+            if(y == up || y == down)
+            {
+                if(x > left && x < right)
                 {
                     fwrite(&black, 3, 1, newFilePtr);
                     fseek(adr, 3, SEEK_CUR);
                 }
                 else
                 {
-                    fread(&cor, 3, 1, adr);
-                    fwrite(&cor, 3, 1, newFilePtr);
+                    // Lendo cada valor RGB de cada pixel,
+                    // lembrando que no arquivo eles estão na sequência BGR
+                    fread(&cor[0], 1, 1, adr);  //Blue
+                    fread(&cor[1], 1, 1, adr);  //Green
+                    fread(&cor[2], 1, 1, adr);  //Red
+
+                    fwrite(&cor[0], 1, 1, newFilePtr);
+                    fwrite(&cor[1], 1, 1, newFilePtr);
+                    fwrite(&cor[2], 1, 1, newFilePtr);
                 }
                 continue;
             }
 
-            fread(&cor, 3, 1, adr);
-            fwrite(&cor, 3, 1, newFilePtr);
+            // Lendo cada valor RGB de cada pixel,
+            // lembrando que no arquivo eles estão na sequência BGR
+            fread(&cor[0], 1, 1, adr);  //Blue
+            fread(&cor[1], 1, 1, adr);  //Green
+            fread(&cor[2], 1, 1, adr);  //Red
+
+            //if(y >= 5 && x >= 5){
+            fwrite(&cor[0], 1, 1, newFilePtr);
+            fwrite(&cor[1], 1, 1, newFilePtr);
+            fwrite(&cor[2], 1, 1, newFilePtr);
+            /*else{
+            fwrite(&black, 1, 1, newFilePtr);
+            fwrite(&black, 1, 1, newFilePtr);
+            fwrite(&black, 1, 1, newFilePtr);}*/
 
         }
         ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
