@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1541032402 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
+1541036252 source:c:\users\victor\documents\github\trab_progr_2trim2018\trabalho_2trim\main.c
 	<stdio.h>
 	<stdlib.h>
 	<locale.h>
@@ -63,15 +63,6 @@
 	<time.h>
 
 1540144386 source:c:\users\victor\documents\github\trab_progr_2trim2018-eccbda16d4152fbecbd4b8473fb79b1d463005b7\trabalho_2trim\main.c
-	<stdio.h>
-	<stdlib.h>
-	<locale.h>
-	<ctype.h>
-	<string.h>
-	<conio.h>
-	<time.h>
-
-1540991240 source:c:\users\16000315\downloads\trabalho_2trim_90\main.c
 	<stdio.h>
 	<stdlib.h>
 	<locale.h>

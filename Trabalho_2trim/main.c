@@ -1,6 +1,19 @@
-/**
-@Author: Victor Guimarães
-@Author: Gabriel Machado
+/** Trabalho de programação do 2º Trimestre:
+*   Manipular um arquivo .bmp de 24 bits por cor
+*   Permitir que o usuário escolha entre:
+*   1: Mostrar as informações do cabeçalho do arquivo.
+*   2: Separar a imagem em 3 arquivos cada um contendo
+*   uma das tres cores: Vermelho, Verde ou Azul.
+*   3: Criar um arquivo novo com os objetos de cor
+*   escolhida inscritos em um retângulo.
+*   4: Criar um arquivo novo com a imagem em escala de
+*   cinza.
+*
+*   Disciplina: Elementos de Programação
+*   Professor:  Marcos Zuccoloto
+*   Turma:      4312/2018
+*   @Author: Victor Guimarães
+*   @Author: Gabriel Machado
 */
 
 #include <stdio.h>
@@ -50,7 +63,6 @@ int main()
     char    nome[20],
             nomebmp[20];
 
-
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
 
@@ -65,7 +77,6 @@ int main()
     strcpy(nomebmp, nome);
     strcat(nomebmp, ".bmp");
     printf("Procurando arquivo %s...\n", nomebmp);
-
 
     filePtr = fopen(nomebmp,"r+b");
 
@@ -162,7 +173,6 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
     fread(&ptrinfo->biClrUsed, sizeof(int), 1, adr);      //Lendo Nº de cores usadas
     fread(&ptrinfo->biClrImportant, sizeof(int), 1, adr); //Lendo Nº de cores importantes
 
-
     printf("\nAssinatura: %c%c",ptrheader->bfType%0x100,ptrheader->bfType/0x100);
     printf("\nO tamanho do arquivo é %x Bytes",ptrheader->bfSize);
     printf("\nO deslocamento do cabeçalho até o início do arquivo é %d Bytes",ptrheader->bfOffBits );
@@ -193,26 +203,25 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
     FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
 
-    //Garantindo que o vetor está zerado (Previne erros)
-    cor[0] = 0;
-    cor[1] = 0;
-    cor[2] = 0;
+    // Garantindo que o vetor está zerado (Previne erros)
+    for(i = 0; i < 3; i++)
+    {
+        cor[i] = 0;
+    }
 
     //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
     nome = malloc(sizeof(arquivo));
-
     strcpy(nome, arquivo); //Copiando a string do nome original para uma nova variavel
 
     puts("\n\nEscolha a cor que desejas separar:");
     puts("1. Vermelho");
     puts("2. Verde");
     puts("3. Azul");
-
     //Leitura da tecla pressionada
     do
     {
         option = ( getche() - '0' );
-        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n"); // Mensagem cordial
+        if(option < 1 || option > 3) printf("\nInsira um valor de 1 a 3, caralho\n"); // Mensagem cordial
     }while(option < 1 || option > 3);
     puts(" ");
 
@@ -345,35 +354,29 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     int     x, y,               // Variáveis de incremento do for
             altura  = ptrinfo->biHeight,
             largura = ptrinfo->biWidth,
-            /*up      = 0,        // Representa a parte mais alta do objeto
+            up      = 0,        // Representa a parte mais alta do objeto
             down    = altura,   // Representa a parte mais baixa do objeto
             left    = largura,  // Representa a parte mais à esquerda do objeto
-            right   = 0,        // Representa a parte mais à direita do objeto  */
+            right   = 0,        // Representa a parte mais à direita do objeto
             option  = 0,        // Variável da função escolhida pelo usuário
             red   = 0xff0000,
             blue  = 0x0000ff,
             green = 0x00ff00,
             black = 0x000000,
-            control  = 0,
-            control2 = 0,
-            cor[3],             // Cada posição corresponde ao valor de 0 a 255 de cada cor
-            aux[3];             // Cada posição corresponde ao valor de 0 a 255 de cada cor
+            cor[3];           // Cada posição corresponde ao valor de 0 a 255 de cada cor
 
     char    *nome;              // Nome do arquivo a ser criado dentro dessa função
 
     FILE    *newFilePtr;        // Ponteiro para o arquivo gerado
 
-    //Garantindo que o vetor está zerado (Previne erros)
+    // Garantindo que o vetor está zerado (Previne erros)
     for(x = 0; x < 3; x++)
     {
-        cor[x]  = 0;
-        aux[x]  = 0;
+        cor[x] = 0;
     }
-
 
     //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
     nome = malloc(sizeof(arquivo));
-
     strcpy(nome, arquivo); //Copiando a string do nome original para uma nova variavel
 
     puts("\n\nEscolha a cor que estais a procurar:");
@@ -384,7 +387,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     do
     {
         option = ( getche()-'0' );
-        if(option < 1 || option > 3) printf("\nColoca um valor de 1 a 3 porra\n"); // Mensagem cordial
+        if(option < 1 || option > 3) printf("\nMete um valor de 1 a 3 ae pelamor\n"); // Mensagem cordial
     }while(option < 1 || option > 3);
     puts(" ");
 
@@ -437,17 +440,15 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
     fseek(newFilePtr, ptrheader->bfOffBits, SEEK_SET);
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
-    for(y = 0; y < altura; y++)
+    for(y = altura; y > 0; y--)
     {
         for(x = 0; x < largura; x++)
         {
             // Lendo cada valor RGB de cada pixel,
             // lembrando que no arquivo eles estão na sequência BGR
-            control = ftell(adr); control2 = ftell(newFilePtr);
             fread(&cor[0], 1, 1, adr);  //Blue
             fread(&cor[1], 1, 1, adr);  //Green
             fread(&cor[2], 1, 1, adr);  //Red
-            control = ftell(adr); control2 = ftell(newFilePtr);
 
             /// Testando se a soma dos 3 for menor do que a cor branca
             if( (cor[0] + cor[1] + cor[2]) < (0xFF * 3) ) //Branco == FF*3
@@ -458,102 +459,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[1] < 30) ) //Máximos antes que deixe de ser vermelho
                         {
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fseek(adr, -6, SEEK_CUR);       // Pixel à esquerda do colorido
-                            fseek(newFilePtr, -3, SEEK_CUR);// Volta um pixel no arquivo criado para substituir
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fread(&aux[0], 1, 1, adr);  // Blue
-                            fread(&aux[1], 1, 1, adr);  // Green
-                            fread(&aux[2], 1, 1, adr);  // Red
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            if( (aux[0] + aux[1] + aux[2]) == (0xFF * 3) )  // Se for branco
-                                fwrite(&black, 3, 1, newFilePtr);           // Vira Preto
-                            else
-                            {
-                                fwrite(&aux[0], 1, 1, newFilePtr);
-                                fwrite(&aux[1], 1, 1, newFilePtr);
-                                fwrite(&aux[2], 1, 1, newFilePtr);
-                            }
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fseek(adr, -(largura*3)-3, SEEK_CUR);
-                            fseek(newFilePtr, -(largura*3)-3, SEEK_CUR);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fread(&aux[0], 1, 1, adr);  //Blue
-                            fread(&aux[1], 1, 1, adr);  //Green
-                            fread(&aux[2], 1, 1, adr);  //Red
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            if( (aux[0] + aux[1] + aux[2]) == (0xFF * 3) )  // Se for branco
-                                fwrite(&black, 3, 1, newFilePtr);           // Vira Preto
-                            else
-                            {
-                                fwrite(&aux[0], 1, 1, newFilePtr);
-                                fwrite(&aux[1], 1, 1, newFilePtr);
-                                fwrite(&aux[2], 1, 1, newFilePtr);
-                            }
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fseek(adr, (largura*3)+3, SEEK_CUR);
-                            fseek(newFilePtr, (largura*3), SEEK_CUR);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-
-
-
-                            fseek(adr, 3, SEEK_CUR);        // Pixel à direita do colorido
-
-                            fwrite(&cor[0], 1, 1, newFilePtr);
-                            fwrite(&cor[1], 1, 1, newFilePtr);
-                            fwrite(&cor[2], 1, 1, newFilePtr);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fread(&aux[0], 1, 1, adr);  //Blue
-                            fread(&aux[1], 1, 1, adr);  //Green
-                            fread(&aux[2], 1, 1, adr);  //Red
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            if( (aux[0] + aux[1] + aux[2]) == (0xFF * 3) )
-                                fwrite(&black, 3, 1, newFilePtr);
-                            else
-                            {
-                                fwrite(&aux[0], 1, 1, newFilePtr);
-                                fwrite(&aux[1], 1, 1, newFilePtr);
-                                fwrite(&aux[2], 1, 1, newFilePtr);
-                            }
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            fseek(adr, -6, SEEK_CUR);
-                            fseek(newFilePtr, -6, SEEK_CUR);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);
-
-                            /*
-                            fseek(adr, -3, SEEK_CUR);        // Pixel à direita do colorido
-                            fseek(newFilePtr, -6, SEEK_CUR);
-
-                            control = ftell(adr); control2 = ftell(newFilePtr);*/
-
-                            /*
-                            fseek(adr, -6, SEEK_CUR);
-                            fseek(adr, -largura, SEEK_CUR);*/
-                            continue;
+                            if(y  >= up)     up      =  y;
+                            if(y  <= down)   down    =  y;
+                            if(x  <= left)   left    =  x;
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
@@ -563,10 +472,10 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[0] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser verde
                         {
-                            /*if(y  >= up)     up      =  y;
+                            if(y  >= up)     up      =  y;
                             if(y  <= down)   down    =  y;
                             if(x  <= left)   left    =  x;
-                            if(x  >= right)  right   =  x;*/
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
@@ -576,39 +485,35 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     {
                         if( (cor[1] < 30) && (cor[2] < 30) ) // Máximos antes que deixe de ser azul
                         {
-                            /*if(y  >= up)     up      =  y;
+                            if(y  >= up)     up      =  y;
                             if(y  <= down)   down    =  y;
                             if(x  <= left)   left    =  x;
-                            if(x  >= right)  right   =  x;*/
+                            if(x  >= right)  right   =  x;
                         }
                     }
                 }
             }
-            control = ftell(adr); control2 = ftell(newFilePtr);
-            fwrite(&cor[0], 1, 1, newFilePtr);
-            fwrite(&cor[1], 1, 1, newFilePtr);
-            fwrite(&cor[2], 1, 1, newFilePtr);
-            control = ftell(adr); control2 = ftell(newFilePtr);
         }
-        ///Escrevendo bytes nulos no final dos arquivos cuja largura não for divisível por 4
         for(x = 0; x < (largura%4); x++)
         {
-            fwrite(&black, 1, 1, newFilePtr);
-            //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
+            //Movendo o ponteiro do arquivo original para pular os bytes nulos
             fseek(adr, 1, SEEK_CUR);
         }
     }
-/*
-    up      +=   1;
-    down    -=   1;
-    left    -=   1;
-    right   +=   1;*/
-/*
-    if(up    > altura)     up      = altura;
+    //Definindo a distância de cada lado do retângulo dos objetos inscritos
+    up      +=   2;
+    down    -=   2;
+    left    -=   2;
+    right   +=   2;
+
+    // Caso os lados do retângulo forem passar dos limites da imagem:
+    // Isso faz com que eles estejam bem na borda
+    if(up    > altura)     up    = altura;
     if(down  <= 0)       down    = 1;
     if(left  <= 0)       left    = 0;
-    if(right >= largura) right   = largura-1;*/
-/*
+    if(right >= largura) right   = largura-1;
+
+    //Retornando o ponteiro para o começo da imagem
     fseek(adr, ptrheader->bfOffBits, SEEK_SET);
 
     for(y = altura; y > 0; y--)
@@ -624,7 +529,6 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
                     continue;
                 }
             }
-
             if(y == up || y == down)
             {
                 if(x > left && x < right)
@@ -653,7 +557,6 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             fread(&cor[1], 1, 1, adr);  //Green
             fread(&cor[2], 1, 1, adr);  //Red
 
-            //if(y >= 5 && x >= 5){
             fwrite(&cor[0], 1, 1, newFilePtr);
             fwrite(&cor[1], 1, 1, newFilePtr);
             fwrite(&cor[2], 1, 1, newFilePtr);
@@ -666,7 +569,7 @@ int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinf
             //Movendo o ponteiro do arquivo original para ficar sincronizado com o outro
             fseek(adr, 1, SEEK_CUR);
         }
-    }*/
+    }
     return 0;
 }
 
@@ -682,19 +585,17 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
     char    *nome;                  // Nome do arquivo a ser criado dentro dessa função
 
-
     FILE    *newFilePtr;
 
     // Garantindo que o vetor está zerado (Previne erros)
-    cor[0] = 0;
-    cor[1] = 0;
-    cor[2] = 0;
+    for(i = 0; i < 3; i++)
+    {
+        cor[i] = 0;
+    }
 
     //Aloca memória para simular um vetor igual ao do ponteiro do nome recebido
     nome = malloc(sizeof(arquivo));
-
     strcpy(nome, arquivo);          // Copiando a string do nome original para uma nova variavel
-
     strcat(nome, "_gs.bmp");        // Adicionando os sufixos necessários ao fim do nome do arquivo
 
     newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
