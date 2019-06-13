@@ -51,12 +51,12 @@ int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *pt
 int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 int buscacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
 int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo, char *arquivo);
+int peganum(void);
 
 int main()
 {
     system("color 0E");//Troca a cor do console para uma totalmente superior
     setlocale(LC_ALL, "Portuguese");//Aplicando língua como Português
-
     int     option = 0,
             flag   = 0;
 
@@ -65,9 +65,7 @@ int main()
 
     struct bmpheader *ptrheader;
     struct bmpinfoheader *ptrinfo;
-
     FILE *filePtr;
-
     //Alocando memória para os ponteiros
     ptrheader = (struct bmpheader*) malloc(sizeof(struct bmpheader));
     ptrinfo   = (struct bmpinfoheader*) malloc(sizeof(struct bmpinfoheader));
@@ -128,21 +126,21 @@ int main()
     }
     while(flag != 2);
     printf("\n");
+    printf("Deseja excluir arquivos gerados? \n1 - Sim \n2 - Não \n");
+    option = peganum();
+    if(option != -1)
+    {
+        printf("Funcionou: %d", option);
+    }
+    else
+    {
+        printf("Errou! Tente novamente: ");
+
+    }
     fclose(filePtr);
     free(ptrheader);
     free(ptrinfo);
     return 0;
-}
-
-void menu(int *escolha)
-{
-    printf("\nOpção: ");
-    *escolha = ( getche()-'0' );
-    if(*escolha < 1 || *escolha > 5)
-    {
-        printf("\nColoca um valor de 1 a 5 caralho\n"); //Hoje eu to pro crime
-        *escolha = 0;
-    }
 }
 
 int headerreader(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrinfo)
@@ -227,22 +225,23 @@ int separacor(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
 
     switch(option)
     {
+        // Colocando o sufixo da cor separada
         case 1:
             option = red;
-            strcat(nome, "_R");     // Colocando o sufixo da cor separada
+            strcat(nome, "_R");
             break;
         case 2:
             option = green;
-            strcat(nome, "_G");     // Colocando o sufixo da cor separada
+            strcat(nome, "_G");
             break;
         case 3:
             option = blue;
-            strcat(nome, "_B");     // Colocando o sufixo da cor separada
+            strcat(nome, "_B");
             break;
     }
     strcat(nome, ".bmp");           // Colocando o .bmp ao fim do nome do arquivo
 
-    newFilePtr = fopen(nome,"w+b"); // Crianco arquivo
+    newFilePtr = fopen(nome,"w+b"); // Criando arquivo
     if (newFilePtr == 0)            // Em caso de erro
     {
         puts("Deu ruim");
@@ -671,4 +670,33 @@ int grayscale(FILE *adr, struct bmpheader *ptrheader,struct bmpinfoheader *ptrin
     }
     free(nome);
     return 0;
+}
+
+void menu(int *escolha)
+{
+    printf("\nOpção: ");
+    *escolha = ( getche()-'0' );
+    if(*escolha < 1 || *escolha > 5)
+    {
+        printf("\nColoca um valor de 1 a 5 caralho\n"); //Hoje eu to pro crime
+        *escolha = 0;
+    }
+}
+
+int peganum(void)
+{
+    char buf[20],
+        *p = 0,
+        flag = 0;
+    int num = 0;
+    printf("Insira um número: ");
+    printf("\n");
+    do
+    {
+        if(flag++ != 0)
+            puts("Número inválido, tente novamente \n");
+        gets(buf);
+        num = strtol(buf, &p, 10);
+    }while(num == 0x7FFFFFFF && !(buf[0] != '\n' && (*p == '\n' || *p == '\0')));
+    return num;
 }
